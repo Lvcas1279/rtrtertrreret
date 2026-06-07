@@ -1634,7 +1634,7 @@ function calcWarmup() {
 // ─── DAY PICKER ───
 function showDayPicker() {
   document.getElementById('day-picker-view').classList.add('active');
-  document.getElementById('mainTabs').style.display = 'none';
+  const _mt = document.getElementById('mainTabs'); if(_mt) _mt.style.display = 'none';
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active', 'view-enter'));
   renderDayPickerCards();
 }
@@ -1681,7 +1681,7 @@ function renderDayPickerCards() {
 function selectDay(dIdx) {
   curDayIdx = dIdx;
   hideDayPicker();
-  document.getElementById('mainTabs').style.display = 'none';
+  const _mt = document.getElementById('mainTabs'); if(_mt) _mt.style.display = 'none';
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active', 'view-enter'));
   
   const target = document.getElementById('day-' + workoutPlan[dIdx]?.id);
@@ -1784,7 +1784,7 @@ container.innerHTML = html;
 function goBackToDayPicker() {
   haptic('light');
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active', 'view-enter'));
-  document.getElementById('mainTabs').style.display = 'none';
+  const _mt = document.getElementById('mainTabs'); if(_mt) _mt.style.display = 'none';
   showDayPicker();
 }
 
@@ -2627,13 +2627,13 @@ function switchNav(tab) {
   if (el) el.classList.add('active');
   
   if (tab === 'workout') {
-    document.getElementById('mainTabs').style.display = 'none';
+    const _mt = document.getElementById('mainTabs'); if(_mt) _mt.style.display = 'none';
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active', 'view-enter'));
     showDayPicker();
     return;
   }
   
-  document.getElementById('mainTabs').style.display = 'none';
+  const _mt = document.getElementById('mainTabs'); if(_mt) _mt.style.display = 'none';
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active', 'view-enter'));
   
   let target = document.getElementById(tab + '-view');
