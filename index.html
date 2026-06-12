@@ -296,7 +296,7 @@
             "Břicho": {
                 "Upper Abs": ["Crunch", "Cable Crunch", "Machine Crunch", "Weighted Crunch", "Decline Crunch", "Swiss Ball Crunch", "Toe Touch Crunch", "V-Up", "Sit-Up", "Ab Roller"],
                 "Lower Abs": ["Hanging Leg Raise", "Hanging Knee Raise", "Reverse Crunch", "Lying Leg Raise", "Flutter Kick", "Scissor Kick", "Toes-to-Bar", "Captain's Chair Leg Raise", "Dragon Flag", "Garhammer Raise"],
-                "Obliques": ["Russian Twist", "Cable Woodchopper", "Side Plank", "Landmine Rotation", "Bicycle Crunch", "Dumbbell Side Bend", "Hanging Oblique Raise", "Oblique Crunch", "Pallof Press", "Medicine Ball Twist"]
+                "Obliques": ["Russian Twist", "Cable Woodchopper", "Side Paragraph", "Landmine Rotation", "Bicycle Crunch", "Dumbbell Side Bend", "Hanging Oblique Raise", "Oblique Crunch", "Pallof Press", "Medicine Ball Twist"]
             },
             "Nohy": {
                 "Quadriceps (přední stehna)": ["Front Squat", "Back Squat", "Hack Squat", "Leg Press", "Leg Extension", "Bulgarian Split Squat", "Walking Lunge", "Smith Machine Squat", "Goblet Squat", "Step-Up"],
@@ -756,20 +756,31 @@
             return null;
         }
 
-        /* ----- Získání dalšího tréninkového plánu v pořadí ----- */
+        /* ----- Robustnější získání dalšího tréninkového plánu v pořadí (vyřešeno zasekávání kvůli _notes) ----- */
         function getNextWorkoutDay() {
             if (state.workoutDays.length === 0) return null;
+            
+            // Seřadit dny s historii sestupně
             const sortedDates = Object.keys(state.history).sort((a,b) => b.localeCompare(a));
-            if (sortedDates.length === 0) return state.workoutDays[0];
+            let lastDayId = null;
             
-            const lastDate = sortedDates[0];
-            const dayIdsInLastDate = Object.keys(state.history[lastDate]);
-            if (dayIdsInLastDate.length === 0) return state.workoutDays[0];
+            for (const date of sortedDates) {
+                if (!state.history[date]) continue;
+                // Získat platné dayId z historie (odfiltrovat speciální klíče jako _notes a smazané tréninky)
+                const loggedDayIds = Object.keys(state.history[date]).filter(id => id !== '_notes' && state.workoutDays.some(wd => wd.id === id));
+                if (loggedDayIds.length > 0) {
+                    lastDayId = loggedDayIds[loggedDayIds.length - 1];
+                    break;
+                }
+            }
             
-            const lastDayId = dayIdsInLastDate[dayIdsInLastDate.length - 1];
+            if (!lastDayId) {
+                return state.workoutDays[0];
+            }
+            
             const lastIdx = state.workoutDays.findIndex(d => d.id === lastDayId);
-            
             if (lastIdx === -1) return state.workoutDays[0];
+            
             return state.workoutDays[(lastIdx + 1) % state.workoutDays.length];
         }
 
@@ -847,7 +858,7 @@
                 if (dateObj >= startOfWeek) {
                     for (const dayId in state.history[date]) {
                         for (const ex in state.history[date][dayId]) {
-                            if (ex === '_notes') continue;
+                            if (ex === '_notes') continue; // Přeskakujeme poznámky
                             const cat = exToCatMap[ex] || 'Ostatní';
                             hitCategories.add(cat);
                         }
@@ -986,11 +997,33 @@
             }
 
             const neglected = getNeglectedMusclesThisWeek();
-            let neglectedHtml = '';
+            let neglectedWidgetHtml = '';
+
             if (neglected.length === 0) {
-                neglectedHtml = '<p class="text-sm text-iosGreen font-bold flex items-center mt-2"><i class="ph-fill ph-check-circle text-lg mr-1.5"></i> Tento týden jsi procvičil vše!</p>';
+                neglectedWidgetHtml = `
+                    <div class="glass-panel rounded-[2rem] p-6 relative overflow-hidden border border-iosGreen/20 bg-iosGreen/5">
+                        <div class="absolute -right-4 -top-4 w-32 h-32 bg-iosGreen/20 rounded-full blur-[40px] pointer-events-none"></div>
+                        <div class="relative z-10">
+                            <span class="text-[11px] text-iosGreen uppercase font-black tracking-widest">Tip pro tento týden</span>
+                            <h3 class="text-lg font-bold text-white mt-1">Vše odcvičeno! 🎉</h3>
+                            <p class="text-[12px] text-slate-300 mt-1.5 leading-relaxed font-medium">Skvělá práce! Úspěšně jsi zasáhl všechny svalové partie. V pondělí začínáme nanovo.</p>
+                            <div class="mt-4 flex items-center space-x-2 text-iosGreen font-bold text-sm">
+                                <i class="ph-fill ph-check-circle text-xl"></i>
+                                <span>Kompletní týdenní cyklus</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
             } else {
-                neglectedHtml = `<div class="flex flex-wrap gap-2 mt-3">` + neglected.map(m => `<span class="px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold text-slate-400">${m}</span>`).join('') + `</div>`;
+                let neglectedPills = `<div class="flex flex-wrap gap-2 mt-3">` + neglected.map(m => `<span class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-[11px] font-bold text-slate-300 shadow-sm">${m}</span>`).join('') + `</div>`;
+                neglectedWidgetHtml = `
+                    <div class="glass-panel rounded-[2rem] p-6">
+                        <span class="text-[11px] text-iosRed uppercase font-black tracking-widest">Tip pro tento týden</span>
+                        <h3 class="text-lg font-bold text-white mt-1">Zanedbané svaly</h3>
+                        <p class="text-[11px] text-slate-400 mt-1 leading-tight">Zatím jsi od pondělí neprocvičil tyto partie:</p>
+                        ${neglectedPills}
+                    </div>
+                `;
             }
 
             const daysArr = [];
@@ -1004,6 +1037,7 @@
                 daysArr.push({ dateStr, dayName, dayNum: d.getDate(), isToday, hasWorkout });
             }
 
+            // Změněno onclick chování – nyní otevírá přímo rollout pro editaci/retro-zápis dne
             const miniCalendarHtml = daysArr.map(d => {
                 let dayClass = 'bg-white/5 border-white/5';
                 let textClassDayName = 'text-slate-500';
@@ -1030,7 +1064,7 @@
                 }
                 
                 return `
-                    <div onclick="switchTab('kalendar')" class="flex flex-col items-center justify-center flex-1 py-3 rounded-[1.2rem] ${dayClass} border relative cursor-pointer active:scale-95 transition-transform">
+                    <div onclick="openDayLogsHistoryRollout('${d.dateStr}')" class="flex flex-col items-center justify-center flex-1 py-3 rounded-[1.2rem] ${dayClass} border relative cursor-pointer active:scale-95 transition-transform">
                         <span class="text-[9px] font-black uppercase mb-0.5 ${textClassDayName}">${d.dayName}</span>
                         <span class="text-sm ${textClassDayNum} z-10">${d.dayNum}</span>
                         ${marker}
@@ -1064,6 +1098,7 @@
                         ${isGoalMet && streakData.weeklyStreak >= 4 ? `<div class="mt-3 text-center text-[10px] font-black uppercase tracking-widest ${streakColor} opacity-80">${visuals.name}</div>` : ''}
                     </div>
 
+                    <!-- 7denní pásmo aktivity -->
                     <div class="glass-panel rounded-[2rem] p-5">
                         <div class="flex items-center justify-between mb-3 px-1">
                             <div class="flex items-center space-x-2 text-iosTeal">
@@ -1076,6 +1111,7 @@
                         </div>
                     </div>
 
+                    <!-- Rychlý start nahoře -->
                     <div class="glass-panel rounded-[2rem] p-6">
                         <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest">Rychlý start</span>
                         <h3 class="text-xl font-bold text-white mt-1">Další na řadě</h3>
@@ -1092,6 +1128,7 @@
                             <div class="text-[10px] text-slate-500 font-bold mt-1">${lastWeightDate || 'Zatím nezadáno'}</div>
                         </div>
 
+                        <!-- Náhodné PR maxima -->
                         <div onclick="switchTab('rekordy')" class="glass-panel rounded-[2rem] p-5 active:opacity-50 transition-opacity cursor-pointer flex flex-col justify-between">
                             <div class="flex items-center space-x-2 text-iosAmber mb-2">
                                 <i class="ph-bold ph-medal text-lg"></i>
@@ -1101,12 +1138,8 @@
                         </div>
                     </div>
 
-                    <div class="glass-panel rounded-[2rem] p-6">
-                        <span class="text-[11px] text-iosRed uppercase font-black tracking-widest">Tip pro tento týden</span>
-                        <h3 class="text-lg font-bold text-white mt-1">Zanedbané svaly</h3>
-                        <p class="text-[11px] text-slate-400 mt-1 leading-tight">Zatím jsi od pondělí neprocvičil tyto partie:</p>
-                        ${neglectedHtml}
-                    </div>
+                    <!-- Widget: Zanedbané svaly dole -->
+                    ${neglectedWidgetHtml}
 
                 </div>
             `;
@@ -1438,7 +1471,7 @@
             state.biometrics[targetDate][metricId] = val;
             
             saveState();
-            closeRollout(); // Explicitně zavřít okno
+            closeRollout(); 
             renderView();
             showToast("Záznam úspěšně uložen");
         };
@@ -3000,6 +3033,7 @@
                     </div>
                 </div>
             `;
+            lucide.createIcons();
         }
 
         window.toggleLegalInfo = () => {
@@ -3208,7 +3242,7 @@
             const html = `
                 <div class="text-center flex flex-col h-full relative w-full">
                     <div class="flex-shrink-0 mb-4">
-                        <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest">Plán ${window.wizardState.currentDay} z ${window.wizardState.totalDays}</span>
+                        <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest">Krok 2 ze 3</span>
                         <h3 class="text-2xl font-extrabold text-white mt-1">Nastavení tréninku</h3>
                     </div>
 
@@ -3334,7 +3368,9 @@
             initRolloutGestures();
 
             document.getElementById('rollout-backdrop').addEventListener('click', (evt) => {
-                if (rolloutDismissible && evt.target === evt.currentTarget) closeRollout();
+                if (rolloutDismissible && evt.target === evt.currentTarget) {
+                    closeRollout();
+                }
             });
 
             if (!state.onboarded) openOnboardingConsent();
