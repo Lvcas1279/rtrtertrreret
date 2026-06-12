@@ -194,7 +194,7 @@
                 <h1 class="text-xl font-black tracking-tight text-white flex items-center">SvalStats</h1>
             </div>
         </div>
-        <button onclick="renderNastaveniView(document.getElementById('app-content')); switchTabVisuals('nastaveni')" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 active:opacity-50 transition-opacity">
+        <button onclick="state.currentTab = 'nastaveni'; saveState(); renderView(); switchTabVisuals('nastaveni')" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 active:opacity-50 transition-opacity">
             <i class="ph-fill ph-gear text-[26px]"></i>
         </button>
     </header>
@@ -206,7 +206,7 @@
     <!-- FLOATING LIQUID GLASS TAB BAR -->
     <nav class="layout-tabbar">
         <div class="tabbar-pill flex justify-between items-center">
-            <button onclick="switchTab('domu')" id="tab-domu" class="flex flex-col items-center justify-center flex-1 h-[52px] rounded-[1.2rem] text-slate-400 active:opacity-50 transition-opacity">
+            <button onclick="proceedSwitchTab('domu')" id="tab-domu" class="flex flex-col items-center justify-center flex-1 h-[52px] rounded-[1.2rem] text-slate-400 active:opacity-50 transition-opacity">
                 <i class="ph-fill ph-house text-[24px]"></i>
                 <span class="text-[10px] font-semibold mt-0.5 tracking-wide">Domů</span>
             </button>
@@ -214,15 +214,15 @@
                 <i class="ph-fill ph-barbell text-[24px]"></i>
                 <span class="text-[10px] font-semibold mt-0.5 tracking-wide">Trénink</span>
             </button>
-            <button onclick="switchTab('profil')" id="tab-profil" class="flex flex-col items-center justify-center flex-1 h-[52px] rounded-[1.2rem] text-slate-400 active:opacity-50 transition-opacity">
+            <button onclick="proceedSwitchTab('profil')" id="tab-profil" class="flex flex-col items-center justify-center flex-1 h-[52px] rounded-[1.2rem] text-slate-400 active:opacity-50 transition-opacity">
                 <i class="ph-fill ph-user text-[24px]"></i>
                 <span class="text-[10px] font-semibold mt-0.5 tracking-wide">Profil</span>
             </button>
-            <button onclick="switchTab('kalendar')" id="tab-kalendar" class="flex flex-col items-center justify-center flex-1 h-[52px] rounded-[1.2rem] text-slate-400 active:opacity-50 transition-opacity">
+            <button onclick="proceedSwitchTab('kalendar')" id="tab-kalendar" class="flex flex-col items-center justify-center flex-1 h-[52px] rounded-[1.2rem] text-slate-400 active:opacity-50 transition-opacity">
                 <i class="ph-fill ph-calendar-blank text-[24px]"></i>
                 <span class="text-[10px] font-semibold mt-0.5 tracking-wide">Kalendář</span>
             </button>
-            <button onclick="switchTab('rekordy')" id="tab-rekordy" class="flex flex-col items-center justify-center flex-1 h-[52px] rounded-[1.2rem] text-slate-400 active:opacity-50 transition-opacity">
+            <button onclick="proceedSwitchTab('rekordy')" id="tab-rekordy" class="flex flex-col items-center justify-center flex-1 h-[52px] rounded-[1.2rem] text-slate-400 active:opacity-50 transition-opacity">
                 <i class="ph-fill ph-trophy text-[24px]"></i>
                 <span class="text-[10px] font-semibold mt-0.5 tracking-wide">Rekordy</span>
             </button>
@@ -329,6 +329,15 @@
         };
         const AVAILABLE_COLORS = ['cyan', 'blue', 'indigo', 'purple', 'pink', 'green', 'lime', 'amber'];
 
+        const DEFAULT_HOME_LAYOUT = [
+            { id: 'streak', visible: true, size: 'full', name: 'Týdenní cíl' },
+            { id: 'calendar', visible: true, size: 'full', name: 'Týdenní přehled' },
+            { id: 'quickstart', visible: true, size: 'full', name: 'Rychlý start' },
+            { id: 'weight', visible: true, size: 'half', name: 'Aktuální váha' },
+            { id: 'records', visible: true, size: 'half', name: 'Rekordy' },
+            { id: 'neglected', visible: true, size: 'full', name: 'Zanedbané svaly' }
+        ];
+
         let state = {
             onboarded: false,
             weeklyGoal: 3, 
@@ -339,7 +348,9 @@
             history: {}, 
             currentTab: 'domu',
             activeWorkout: null,
-            photoDates: {} 
+            photoDates: {},
+            lastCompletedWorkoutId: null,
+            homeLayout: JSON.parse(JSON.stringify(DEFAULT_HOME_LAYOUT))
         };
 
         let timerInterval = null;
@@ -353,6 +364,7 @@
         window.activeWorkoutCollapsed = {};
         window.prInterval = null;
         window.editorState = { expandedCats: {}, expandedSubCats: {} };
+        window.homeLayoutDraft = [];
 
         const dbName = "SvalStatsDB";
         let db;
@@ -393,7 +405,7 @@
             const isLegs = category === 'Nohy';
 
             return `
-                <svg viewBox="0 0 40 80" class="w-8 h-16 drop-shadow-md">
+                <svg viewBox="0 0 40 80" class="w-8 h-16 drop-shadow-md flex-shrink-0">
                     <circle cx="20" cy="10" r="6" fill="${inactive}" />
                     <path d="M 9 21 Q 20 15 31 21 L 34 27 Q 20 22 6 27 Z" fill="${isShoulders ? active : inactive}" />
                     <path d="M 12 26 L 28 26 L 26 36 L 14 36 Z" fill="${isChest || isBack ? active : inactive}" />
@@ -546,7 +558,14 @@
                     if (!state.photoDates) state.photoDates = {};
                     if (!state.weeklyGoal) state.weeklyGoal = 3;
                     if (!state.streakOffset) state.streakOffset = 0; 
-                    if (state.currentTab === 'nastaveni') state.currentTab = 'domu'; 
+                    if (!state.homeLayout) state.homeLayout = JSON.parse(JSON.stringify(DEFAULT_HOME_LAYOUT));
+                    
+                    if (state.currentTab === 'nastaveni' || state.currentTab === 'editor') state.currentTab = 'domu'; 
+
+                    const stateIds = state.homeLayout.map(w => w.id);
+                    DEFAULT_HOME_LAYOUT.forEach(dw => {
+                        if (!stateIds.includes(dw.id)) state.homeLayout.push(dw);
+                    });
 
                     state.workoutDays.forEach((day, idx) => {
                         if (!day.color) day.color = AVAILABLE_COLORS[idx % AVAILABLE_COLORS.length];
@@ -595,12 +614,19 @@
             };
         }
 
-        function openRollout(contentHtml) {
+        function openRollout(contentHtml, keepScroll = false) {
             const backdrop = document.getElementById('rollout-backdrop');
             const panel = document.getElementById('rollout-panel');
             const container = document.getElementById('rollout-content');
 
+            const prevScroll = keepScroll ? container.scrollTop : 0;
+
             container.innerHTML = contentHtml;
+
+            if (keepScroll) {
+                container.scrollTop = prevScroll;
+            }
+
             backdrop.classList.remove('hidden');
 
             setTimeout(() => {
@@ -686,11 +712,18 @@
             state.currentTab = tabId;
             saveState();
             switchTabVisuals(tabId);
+            
+            const app = document.getElementById('app-content');
+            if (app) app.scrollTop = 0; 
+            
             renderView();
+            
+            if (app) app.scrollTop = 0; 
         }
 
         function renderView() {
             const app = document.getElementById('app-content');
+            const prevScroll = app.scrollTop; 
             app.innerHTML = '';
 
             switch (state.currentTab) {
@@ -699,7 +732,12 @@
                 case 'trenink': renderTreninkView(app); break;
                 case 'kalendar': renderKalendarView(app); break;
                 case 'rekordy': renderRekordyView(app); break;
+                case 'editor': renderEditorView(app); break;
+                case 'nastaveni': renderNastaveniView(app); break;
+                default: renderDomuView(app); break;
             }
+            
+            app.scrollTop = prevScroll; 
         }
 
         /* ----- Vlastní Cviky Helper ----- */
@@ -731,7 +769,7 @@
 
             if (source === 'editor') {
                 window.editorDraft.exercises.push({ name: exName, targetSets: 4 });
-                renderEditorView(document.getElementById('app-content'));
+                renderView();
             } else if (source === 'wizard') {
                 const dayData = window.wizardState.days[window.wizardState.currentDay - 1];
                 dayData.exercises.push({ name: exName, targetSets: 4 });
@@ -756,32 +794,17 @@
             return null;
         }
 
-        /* ----- Robustnější získání dalšího tréninkového plánu v pořadí (vyřešeno zasekávání kvůli _notes) ----- */
+        /* ----- Získání dalšího tréninkového plánu v pořadí ----- */
         function getNextWorkoutDay() {
             if (state.workoutDays.length === 0) return null;
             
-            // Seřadit dny s historii sestupně
-            const sortedDates = Object.keys(state.history).sort((a,b) => b.localeCompare(a));
-            let lastDayId = null;
-            
-            for (const date of sortedDates) {
-                if (!state.history[date]) continue;
-                // Získat platné dayId z historie (odfiltrovat speciální klíče jako _notes a smazané tréninky)
-                const loggedDayIds = Object.keys(state.history[date]).filter(id => id !== '_notes' && state.workoutDays.some(wd => wd.id === id));
-                if (loggedDayIds.length > 0) {
-                    lastDayId = loggedDayIds[loggedDayIds.length - 1];
-                    break;
+            if (state.lastCompletedWorkoutId) {
+                const lastIdx = state.workoutDays.findIndex(d => d.id === state.lastCompletedWorkoutId);
+                if (lastIdx !== -1) {
+                    return state.workoutDays[(lastIdx + 1) % state.workoutDays.length];
                 }
             }
-            
-            if (!lastDayId) {
-                return state.workoutDays[0];
-            }
-            
-            const lastIdx = state.workoutDays.findIndex(d => d.id === lastDayId);
-            if (lastIdx === -1) return state.workoutDays[0];
-            
-            return state.workoutDays[(lastIdx + 1) % state.workoutDays.length];
+            return state.workoutDays[0];
         }
 
         /* ----- Domů (Streaks & Widgets) ----- */
@@ -858,7 +881,7 @@
                 if (dateObj >= startOfWeek) {
                     for (const dayId in state.history[date]) {
                         for (const ex in state.history[date][dayId]) {
-                            if (ex === '_notes') continue; // Přeskakujeme poznámky
+                            if (ex === '_notes') continue;
                             const cat = exToCatMap[ex] || 'Ostatní';
                             hitCategories.add(cat);
                         }
@@ -905,7 +928,127 @@
         window.startWorkoutFromHome = (dayId) => {
             state.currentTab = 'trenink';
             switchTabVisuals('trenink');
-            selectWorkoutDay(dayId);
+            
+            const day = state.workoutDays.find(d => d.id === dayId);
+            if (!day) return;
+            
+            window.pendingRetroDate = null; 
+            window.activeWorkoutCollapsed = {}; 
+
+            state.activeWorkout = {
+                dayId: dayId,
+                name: day.name,
+                color: day.color || 'cyan',
+                startTime: Date.now(),
+                targetDate: getToday(), 
+                logs: {},
+                notes: {} 
+            };
+
+            day.exercises.forEach(exObj => {
+                const name = exObj.name;
+                const setsCount = exObj.targetSets || 4;
+                state.activeWorkout.logs[name] = Array.from({ length: setsCount }, () => ({ weight: '', reps: '' }));
+            });
+
+            saveState();
+            renderView();
+        };
+
+        window.openHomeLayoutEditor = () => {
+            window.homeLayoutDraft = JSON.parse(JSON.stringify(state.homeLayout));
+            renderHomeLayoutEditor();
+        };
+
+        window.renderHomeLayoutEditor = () => {
+            const listHtml = window.homeLayoutDraft.map((w, idx) => {
+                const isVis = w.visible;
+                const visIcon = isVis ? 'ph-eye text-iosTeal' : 'ph-eye-slash text-slate-500';
+                
+                let sizeIcon, sizeText, sizeColor;
+                if (w.size === 'full') { sizeIcon = 'ph-rectangle'; sizeText = '100%'; sizeColor = 'text-iosTeal'; }
+                else if (w.size === 'half') { sizeIcon = 'ph-squares-four'; sizeText = '50%'; sizeColor = 'text-iosPurple'; }
+                else { sizeIcon = 'ph-square'; sizeText = '25%'; sizeColor = 'text-iosAmber'; }
+                
+                return `
+                    <div class="glass-panel p-4 rounded-3xl mb-3 flex flex-col gap-4">
+                        <div class="flex justify-between items-center px-1">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
+                                    <i class="ph-bold ${visIcon} text-xl"></i>
+                                </div>
+                                <span class="font-bold text-base ${isVis ? 'text-white' : 'text-slate-500 line-through decoration-slate-500/50'}">${w.name}</span>
+                            </div>
+                            <button onclick="toggleDraftWidgetVis(${idx})" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center active:scale-90 transition-transform">
+                                <i class="ph-bold ph-power text-lg ${isVis ? 'text-iosRed' : 'text-iosGreen'}"></i>
+                            </button>
+                        </div>
+
+                        <div class="flex justify-between items-center pt-4 border-t border-white/5 px-1">
+                            <button onclick="toggleDraftWidgetSize(${idx})" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-black/40 border border-white/5 active:scale-95 transition-transform">
+                                <i class="ph-fill ${sizeIcon} ${sizeColor} text-lg"></i>
+                                <span class="text-xs font-black tracking-wide text-white">${sizeText}</span>
+                            </button>
+
+                            <div class="flex gap-2">
+                                <button onclick="moveDraftWidget(${idx}, -1)" class="w-12 h-10 rounded-xl bg-white/5 flex items-center justify-center active:scale-90 transition-all ${idx === 0 ? 'opacity-30 cursor-not-allowed' : 'text-white'}" ${idx === 0 ? 'disabled' : ''}>
+                                    <i class="ph-bold ph-caret-up text-lg"></i>
+                                </button>
+                                <button onclick="moveDraftWidget(${idx}, 1)" class="w-12 h-10 rounded-xl bg-white/5 flex items-center justify-center active:scale-90 transition-all ${idx === window.homeLayoutDraft.length - 1 ? 'opacity-30 cursor-not-allowed' : 'text-white'}" ${idx === window.homeLayoutDraft.length - 1 ? 'disabled' : ''}>
+                                    <i class="ph-bold ph-caret-down text-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const html = `
+                <div class="space-y-4">
+                    <div class="flex justify-between items-start px-2">
+                        <div>
+                            <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest block">Přizpůsobení</span>
+                            <h3 class="text-2xl font-extrabold text-white mt-1">Editor plochy</h3>
+                        </div>
+                        <button onclick="closeRollout()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-slate-400 active:opacity-50 transition-opacity">
+                            <i class="ph-bold ph-x text-lg"></i>
+                        </button>
+                    </div>
+                    <p class="text-sm text-slate-400 font-medium px-2">Přesuňte widgety, změňte jejich velikost nebo je skryjte podle svých potřeb.</p>
+                    <div class="max-h-[60vh] overflow-y-auto no-scrollbar pb-4 pt-2" style="-webkit-overflow-scrolling: touch;">
+                        ${listHtml}
+                    </div>
+                    <button onclick="saveHomeLayout()" class="w-full py-5 rounded-[1.5rem] bg-iosTeal text-black font-extrabold text-lg active:opacity-50 transition-opacity shadow-lg shadow-iosTeal/20">
+                        Uložit rozložení
+                    </button>
+                </div>
+            `;
+            openRollout(html, true); 
+        };
+
+        window.toggleDraftWidgetVis = (idx) => { window.homeLayoutDraft[idx].visible = !window.homeLayoutDraft[idx].visible; renderHomeLayoutEditor(); };
+        window.toggleDraftWidgetSize = (idx) => { 
+            const sizes = ['full', 'half', 'quarter'];
+            const currentSize = window.homeLayoutDraft[idx].size || 'full';
+            const currIdx = sizes.indexOf(currentSize);
+            window.homeLayoutDraft[idx].size = sizes[(currIdx + 1) % sizes.length];
+            renderHomeLayoutEditor(); 
+        };
+        window.moveDraftWidget = (idx, shift) => {
+            const target = idx + shift;
+            if (target >= 0 && target < window.homeLayoutDraft.length) {
+                const temp = window.homeLayoutDraft[idx];
+                window.homeLayoutDraft[idx] = window.homeLayoutDraft[target];
+                window.homeLayoutDraft[target] = temp;
+                renderHomeLayoutEditor();
+            }
+        };
+        window.saveHomeLayout = () => {
+            state.homeLayout = window.homeLayoutDraft;
+            saveState();
+            closeRollout();
+            renderView();
+            showToast("Rozložení uloženo");
         };
 
         function renderDomuView(container) {
@@ -943,36 +1086,47 @@
                 if (pb.weight > 0) allPRs.push({ ex, ...pb });
             });
 
-            let randomPRHtml = `<div class="text-sm font-bold text-slate-300 mt-2 leading-tight">Prozkoumej své<br>nejlepší výkony</div>`;
+            // Re-setup random PR logic specific to sizes
+            if (window.prInterval) clearInterval(window.prInterval);
             if (allPRs.length > 0) {
-                randomPRHtml = `<div id="home-pr-widget-content" class="mt-2 text-left h-[48px] flex flex-col justify-center transition-opacity duration-500"></div>`;
-                
                 setTimeout(() => {
                     const updatePRWidget = () => {
-                        const prContainer = document.getElementById('home-pr-widget-content');
-                        if (!prContainer) return;
+                        const prContainerFullHalf = document.getElementById('home-pr-widget-content');
+                        const prContainerQuarter = document.getElementById('home-pr-widget-content-quarter');
+                        if (!prContainerFullHalf && !prContainerQuarter) return;
                         
                         const randomPR = allPRs[Math.floor(Math.random() * allPRs.length)];
-                        prContainer.style.opacity = 0;
                         
-                        setTimeout(() => {
-                            if (!document.getElementById('home-pr-widget-content')) return;
-                            prContainer.innerHTML = `
-                                <span class="block text-[11px] text-slate-300 font-bold truncate w-full">${randomPR.ex}</span>
-                                <div class="flex items-baseline space-x-1 mt-0.5">
-                                    <span class="text-xl font-black text-iosAmber">${randomPR.weight} kg</span>
-                                    <span class="text-[10px] text-slate-500 font-bold">x ${randomPR.reps}</span>
-                                </div>
-                            `;
-                            prContainer.style.opacity = 1;
-                        }, 500);
+                        if (prContainerFullHalf) {
+                            prContainerFullHalf.style.opacity = 0;
+                            setTimeout(() => {
+                                if (document.getElementById('home-pr-widget-content')) {
+                                    document.getElementById('home-pr-widget-content').innerHTML = `
+                                        <span class="block text-[11px] text-slate-300 font-bold truncate w-full">${randomPR.ex}</span>
+                                        <div class="flex items-baseline space-x-1 mt-0.5">
+                                            <span class="text-xl font-black text-iosAmber">${randomPR.weight} kg</span>
+                                            <span class="text-[10px] text-slate-500 font-bold">x ${randomPR.reps}</span>
+                                        </div>
+                                    `;
+                                    document.getElementById('home-pr-widget-content').style.opacity = 1;
+                                }
+                            }, 500);
+                        }
+                        
+                        if (prContainerQuarter) {
+                            prContainerQuarter.style.opacity = 0;
+                            setTimeout(() => {
+                                if (document.getElementById('home-pr-widget-content-quarter')) {
+                                    document.getElementById('home-pr-widget-content-quarter').textContent = randomPR.ex;
+                                    document.getElementById('home-pr-widget-content-quarter').style.opacity = 1;
+                                }
+                            }, 500);
+                        }
                     };
 
                     updatePRWidget(); 
-
-                    if (window.prInterval) clearInterval(window.prInterval);
                     window.prInterval = setInterval(() => {
-                        if(document.getElementById('home-pr-widget-content')) {
+                        if(document.getElementById('home-pr-widget-content') || document.getElementById('home-pr-widget-content-quarter')) {
                             updatePRWidget();
                         } else {
                             clearInterval(window.prInterval);
@@ -981,50 +1135,8 @@
                 }, 50);
             }
 
-            let nextWorkoutHtml = `<p class="text-sm text-slate-500 italic py-2">Žádné plány nejsou nastaveny.</p>`;
-            if (state.workoutDays.length > 0) {
-                const day = getNextWorkoutDay() || state.workoutDays[0];
-                const colTheme = COLOR_THEMES[day.color] || COLOR_THEMES.cyan;
-                nextWorkoutHtml = `
-                    <div onclick="startWorkoutFromHome('${day.id}')" class="p-4 rounded-[1.5rem] bg-black/40 border border-white/5 active:opacity-50 transition-opacity cursor-pointer mt-3 flex justify-between items-center">
-                        <div class="flex items-center space-x-3">
-                            <span class="w-3 h-3 rounded-full" style="background-color: ${colTheme.marker}; box-shadow: 0 0 8px ${colTheme.marker}"></span>
-                            <span class="font-black text-white text-base">${day.name}</span>
-                        </div>
-                        <i class="ph-fill ph-play-circle text-[24px] ${colTheme.text}"></i>
-                    </div>
-                `;
-            }
-
+            const nextDay = getNextWorkoutDay() || state.workoutDays[0];
             const neglected = getNeglectedMusclesThisWeek();
-            let neglectedWidgetHtml = '';
-
-            if (neglected.length === 0) {
-                neglectedWidgetHtml = `
-                    <div class="glass-panel rounded-[2rem] p-6 relative overflow-hidden border border-iosGreen/20 bg-iosGreen/5">
-                        <div class="absolute -right-4 -top-4 w-32 h-32 bg-iosGreen/20 rounded-full blur-[40px] pointer-events-none"></div>
-                        <div class="relative z-10">
-                            <span class="text-[11px] text-iosGreen uppercase font-black tracking-widest">Tip pro tento týden</span>
-                            <h3 class="text-lg font-bold text-white mt-1">Vše odcvičeno! 🎉</h3>
-                            <p class="text-[12px] text-slate-300 mt-1.5 leading-relaxed font-medium">Skvělá práce! Úspěšně jsi zasáhl všechny svalové partie. V pondělí začínáme nanovo.</p>
-                            <div class="mt-4 flex items-center space-x-2 text-iosGreen font-bold text-sm">
-                                <i class="ph-fill ph-check-circle text-xl"></i>
-                                <span>Kompletní týdenní cyklus</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                let neglectedPills = `<div class="flex flex-wrap gap-2 mt-3">` + neglected.map(m => `<span class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-[11px] font-bold text-slate-300 shadow-sm">${m}</span>`).join('') + `</div>`;
-                neglectedWidgetHtml = `
-                    <div class="glass-panel rounded-[2rem] p-6">
-                        <span class="text-[11px] text-iosRed uppercase font-black tracking-widest">Tip pro tento týden</span>
-                        <h3 class="text-lg font-bold text-white mt-1">Zanedbané svaly</h3>
-                        <p class="text-[11px] text-slate-400 mt-1 leading-tight">Zatím jsi od pondělí neprocvičil tyto partie:</p>
-                        ${neglectedPills}
-                    </div>
-                `;
-            }
 
             const daysArr = [];
             for (let i = -4; i <= 2; i++) {
@@ -1037,89 +1149,138 @@
                 daysArr.push({ dateStr, dayName, dayNum: d.getDate(), isToday, hasWorkout });
             }
 
-            // Změněno onclick chování – nyní otevírá přímo rollout pro editaci/retro-zápis dne
-            const miniCalendarHtml = daysArr.map(d => {
-                let dayClass = 'bg-white/5 border-white/5';
-                let textClassDayName = 'text-slate-500';
-                let textClassDayNum = 'text-slate-400';
-                let marker = '';
-
-                if (d.isToday) {
-                    if (d.hasWorkout) {
-                        dayClass = 'bg-iosAmber text-black shadow-lg shadow-iosAmber/30 ring-2 ring-iosAmber';
-                        textClassDayName = 'text-black/70';
-                        textClassDayNum = 'text-black font-extrabold';
-                    } else {
-                        dayClass = 'bg-iosTeal text-black shadow-lg shadow-iosTeal/30 ring-2 ring-iosTeal';
-                        textClassDayName = 'text-black/70';
-                        textClassDayNum = 'text-black font-extrabold';
-                    }
-                } else {
-                    if (d.hasWorkout) {
-                        dayClass = 'bg-iosAmber/15 border-iosAmber/30';
-                        textClassDayName = 'text-iosAmber';
-                        textClassDayNum = 'text-white font-extrabold';
-                        marker = `<span class="absolute bottom-1.5 w-1.5 h-1.5 rounded-full bg-iosAmber shadow-[0_0_5px_#F59E0B]"></span>`;
-                    }
-                }
+            const getWidgetHtml = (id, size) => {
+                const isQ = size === 'quarter';
+                const pClass = isQ ? 'p-3' : (size === 'half' ? 'p-5' : 'p-6');
                 
-                return `
-                    <div onclick="openDayLogsHistoryRollout('${d.dateStr}')" class="flex flex-col items-center justify-center flex-1 py-3 rounded-[1.2rem] ${dayClass} border relative cursor-pointer active:scale-95 transition-transform">
-                        <span class="text-[9px] font-black uppercase mb-0.5 ${textClassDayName}">${d.dayName}</span>
-                        <span class="text-sm ${textClassDayNum} z-10">${d.dayNum}</span>
-                        ${marker}
-                        ${d.isToday && !d.hasWorkout ? `<span class="absolute bottom-1.5 w-1.5 h-1.5 rounded-full bg-black/50"></span>` : ''}
-                    </div>
-                `;
-            }).join('');
-
-            container.innerHTML = `
-                <div class="space-y-6">
-                    <div onclick="openStreakSettings()" class="glass-panel rounded-[2rem] p-6 relative overflow-hidden cursor-pointer active:opacity-80 transition-opacity group">
-                        <div class="absolute -right-4 -top-4 w-32 h-32 ${bgGlow} rounded-full blur-[40px] pointer-events-none transition-all"></div>
-                        <div class="flex justify-between items-start relative z-10">
-                            <div>
-                                <div class="flex items-center space-x-2">
-                                    <h3 class="text-[11px] font-black uppercase tracking-widest ${streakColor}">Tvůj Týdenní Cíl</h3>
-                                    <i class="ph-bold ph-pencil-simple text-sm ${streakColor} opacity-60"></i>
+                if (id === 'streak') {
+                    if (isQ) {
+                        return `
+                            <div onclick="openStreakSettings()" class="glass-panel rounded-[2rem] ${pClass} cursor-pointer active:opacity-80 transition-opacity h-full flex flex-col justify-center items-center relative overflow-hidden">
+                                <i class="ph-fill ph-fire text-3xl ${streakColor} ${flameGlow}"></i>
+                                <span class="font-black text-white mt-1.5">${streakData.currentWeekCount}/${streakData.goal}</span>
+                            </div>
+                        `;
+                    }
+                    return `
+                        <div onclick="openStreakSettings()" class="glass-panel rounded-[2rem] p-6 relative overflow-hidden cursor-pointer active:opacity-80 transition-opacity group h-full flex flex-col justify-center">
+                            <div class="absolute -right-4 -top-4 w-32 h-32 ${bgGlow} rounded-full blur-[40px] pointer-events-none transition-all"></div>
+                            <div class="flex justify-between items-start relative z-10">
+                                <div>
+                                    <div class="flex items-center space-x-2">
+                                        <h3 class="text-[11px] font-black uppercase tracking-widest ${streakColor}">Tvůj Týdenní Cíl</h3>
+                                    </div>
+                                    <div class="text-3xl font-black text-white mt-1">${streakData.currentWeekCount} <span class="text-lg text-slate-500">/ ${streakData.goal}</span></div>
+                                    <p class="text-xs text-slate-400 font-bold mt-1">Tréninky tento týden</p>
                                 </div>
-                                <div class="text-3xl font-black text-white mt-1">${streakData.currentWeekCount} <span class="text-lg text-slate-500">/ ${streakData.goal}</span></div>
-                                <p class="text-xs text-slate-400 font-bold mt-1">Tréninky tento týden</p>
+                                <div class="flex flex-col items-center">
+                                    <i class="ph-fill ph-fire text-5xl ${streakColor} ${flameGlow} transition-all duration-500"></i>
+                                    <span class="text-sm font-black mt-1 ${streakColor}">${streakData.weeklyStreak} týdnů</span>
+                                </div>
                             </div>
-                            <div class="flex flex-col items-center">
-                                <i class="ph-fill ph-fire text-5xl ${streakColor} ${flameGlow} transition-all duration-500"></i>
-                                <span class="text-sm font-black mt-1 ${streakColor}">${streakData.weeklyStreak} týdnů</span>
+                            <div class="w-full bg-white/10 h-3 rounded-full mt-5 overflow-hidden border border-white/5 relative z-10 flex-shrink-0">
+                                <div class="h-full bg-gradient-to-r from-white/20 to-white/60 rounded-full transition-all duration-1000 ${isGoalMet ? 'bg-gradient-to-r from-iosAmber to-yellow-300' : ''}" style="width: ${progressPercent}%; ${isGoalMet ? 'background: currentColor;' : ''}"></div>
                             </div>
+                            ${isGoalMet && streakData.weeklyStreak >= 4 ? `<div class="mt-3 text-center text-[10px] font-black uppercase tracking-widest ${streakColor} opacity-80 flex-shrink-0">${visuals.name}</div>` : ''}
                         </div>
+                    `;
+                }
+
+                if (id === 'calendar') {
+                    if (isQ) {
+                        return `
+                            <div onclick="switchTab('kalendar')" class="glass-panel rounded-[2rem] ${pClass} h-full flex flex-col justify-center items-center cursor-pointer active:opacity-50">
+                                <i class="ph-bold ph-calendar-blank text-3xl text-iosTeal"></i>
+                                <span class="font-black text-white mt-1.5 text-lg">${new Date().getDate()}.</span>
+                            </div>
+                        `;
+                    }
+                    const miniCalendarHtml = daysArr.map(d => {
+                        let dayClass = 'bg-white/5 border-white/5';
+                        let textClassDayName = 'text-slate-500';
+                        let textClassDayNum = 'text-slate-400';
+                        let marker = '';
+
+                        if (d.isToday) {
+                            if (d.hasWorkout) {
+                                dayClass = 'bg-iosAmber text-black shadow-lg shadow-iosAmber/30 ring-2 ring-iosAmber';
+                                textClassDayName = 'text-black/70';
+                                textClassDayNum = 'text-black font-extrabold';
+                            } else {
+                                dayClass = 'bg-iosTeal text-black shadow-lg shadow-iosTeal/30 ring-2 ring-iosTeal';
+                                textClassDayName = 'text-black/70';
+                                textClassDayNum = 'text-black font-extrabold';
+                            }
+                        } else {
+                            if (d.hasWorkout) {
+                                dayClass = 'bg-iosAmber/15 border-iosAmber/30';
+                                textClassDayName = 'text-iosAmber';
+                                textClassDayNum = 'text-white font-extrabold';
+                                marker = `<span class="absolute bottom-1.5 w-1.5 h-1.5 rounded-full bg-iosAmber shadow-[0_0_5px_#F59E0B]"></span>`;
+                            }
+                        }
                         
-                        <div class="w-full bg-white/10 h-3 rounded-full mt-5 overflow-hidden border border-white/5 relative z-10">
-                            <div class="h-full bg-gradient-to-r from-white/20 to-white/60 rounded-full transition-all duration-1000 ${isGoalMet ? 'bg-gradient-to-r from-iosAmber to-yellow-300' : ''}" style="width: ${progressPercent}%; ${isGoalMet ? 'background: currentColor;' : ''}" class="${streakColor}"></div>
-                        </div>
-                        ${isGoalMet && streakData.weeklyStreak >= 4 ? `<div class="mt-3 text-center text-[10px] font-black uppercase tracking-widest ${streakColor} opacity-80">${visuals.name}</div>` : ''}
-                    </div>
+                        return `
+                            <div onclick="openDayLogsHistoryRollout('${d.dateStr}')" class="flex flex-col items-center justify-center flex-1 py-3 rounded-[1.2rem] ${dayClass} border relative cursor-pointer active:scale-95 transition-transform">
+                                <span class="text-[9px] font-black uppercase mb-0.5 ${textClassDayName}">${d.dayName}</span>
+                                <span class="text-sm ${textClassDayNum} z-10">${d.dayNum}</span>
+                                ${marker}
+                                ${d.isToday && !d.hasWorkout ? `<span class="absolute bottom-1.5 w-1.5 h-1.5 rounded-full bg-black/50"></span>` : ''}
+                            </div>
+                        `;
+                    }).join('');
 
-                    <!-- 7denní pásmo aktivity -->
-                    <div class="glass-panel rounded-[2rem] p-5">
-                        <div class="flex items-center justify-between mb-3 px-1">
-                            <div class="flex items-center space-x-2 text-iosTeal">
-                                <i class="ph-bold ph-calendar-blank text-base"></i>
-                                <span class="text-[10px] font-black uppercase tracking-widest">Týdenní přehled</span>
+                    return `
+                        <div class="glass-panel rounded-[2rem] p-5 h-full flex flex-col justify-center">
+                            <div class="flex items-center justify-between mb-3 px-1">
+                                <div class="flex items-center space-x-2 text-iosTeal">
+                                    <i class="ph-bold ph-calendar-blank text-base"></i>
+                                    <span class="text-[10px] font-black uppercase tracking-widest">Týdenní přehled</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between space-x-1.5 flex-1">
+                                ${miniCalendarHtml}
                             </div>
                         </div>
-                        <div class="flex justify-between space-x-1.5">
-                            ${miniCalendarHtml}
+                    `;
+                }
+
+                if (id === 'quickstart') {
+                    if (!nextDay) return ``;
+                    const colTheme = COLOR_THEMES[nextDay.color] || COLOR_THEMES.cyan;
+                    if (isQ) {
+                        return `
+                            <div onclick="startWorkoutFromHome('${nextDay.id}')" class="glass-panel rounded-[2rem] ${pClass} h-full flex flex-col justify-center items-center cursor-pointer active:opacity-50 transition-opacity">
+                                <i class="ph-fill ph-play-circle text-[40px] ${colTheme.text}"></i>
+                            </div>
+                        `;
+                    }
+                    return `
+                        <div class="glass-panel rounded-[2rem] p-6 h-full flex flex-col justify-center">
+                            <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest">Rychlý start</span>
+                            <h3 class="text-xl font-bold text-white mt-1">Další na řadě</h3>
+                            <div onclick="startWorkoutFromHome('${nextDay.id}')" class="p-4 rounded-[1.5rem] bg-black/40 border border-white/5 active:opacity-50 transition-opacity cursor-pointer mt-3 flex justify-between items-center">
+                                <div class="flex items-center space-x-3">
+                                    <span class="w-3 h-3 rounded-full" style="background-color: ${colTheme.marker}; box-shadow: 0 0 8px ${colTheme.marker}"></span>
+                                    <span class="font-black text-white text-base">${nextDay.name}</span>
+                                </div>
+                                <i class="ph-fill ph-play-circle text-[24px] ${colTheme.text}"></i>
+                            </div>
                         </div>
-                    </div>
+                    `;
+                }
 
-                    <!-- Rychlý start nahoře -->
-                    <div class="glass-panel rounded-[2rem] p-6">
-                        <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest">Rychlý start</span>
-                        <h3 class="text-xl font-bold text-white mt-1">Další na řadě</h3>
-                        ${nextWorkoutHtml}
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div onclick="switchTab('profil')" class="glass-panel rounded-[2rem] p-5 active:opacity-50 transition-opacity cursor-pointer">
+                if (id === 'weight') {
+                    if (isQ) {
+                        return `
+                            <div onclick="switchTab('profil')" class="glass-panel rounded-[2rem] ${pClass} active:opacity-50 transition-opacity cursor-pointer h-full flex flex-col justify-center items-center text-center">
+                                <i class="ph-bold ph-scales text-2xl text-iosTeal mb-1.5"></i>
+                                <span class="text-sm font-black text-white">${lastWeight.replace(' kg', '')}</span>
+                            </div>
+                        `;
+                    }
+                    return `
+                        <div onclick="switchTab('profil')" class="glass-panel rounded-[2rem] ${pClass} active:opacity-50 transition-opacity cursor-pointer h-full flex flex-col justify-center">
                             <div class="flex items-center space-x-2 text-iosTeal mb-2">
                                 <i class="ph-bold ph-scales text-lg"></i>
                                 <span class="text-[10px] font-black uppercase tracking-widest">Aktuální váha</span>
@@ -1127,20 +1288,89 @@
                             <div class="text-2xl font-black text-white mt-2">${lastWeight}</div>
                             <div class="text-[10px] text-slate-500 font-bold mt-1">${lastWeightDate || 'Zatím nezadáno'}</div>
                         </div>
+                    `;
+                }
 
-                        <!-- Náhodné PR maxima -->
-                        <div onclick="switchTab('rekordy')" class="glass-panel rounded-[2rem] p-5 active:opacity-50 transition-opacity cursor-pointer flex flex-col justify-between">
+                if (id === 'records') {
+                    if (isQ) {
+                        return `
+                            <div onclick="switchTab('rekordy')" class="glass-panel rounded-[2rem] ${pClass} active:opacity-50 transition-opacity cursor-pointer h-full flex flex-col justify-center items-center text-center overflow-hidden">
+                                <i class="ph-bold ph-medal text-2xl text-iosAmber mb-1.5"></i>
+                                ${allPRs.length > 0 ? `<div id="home-pr-widget-content-quarter" class="w-full truncate text-[10px] font-bold text-white transition-opacity duration-500 px-1"></div>` : `<span class="text-[10px] text-slate-500">Žádné</span>`}
+                            </div>
+                        `;
+                    }
+                    return `
+                        <div onclick="switchTab('rekordy')" class="glass-panel rounded-[2rem] ${pClass} active:opacity-50 transition-opacity cursor-pointer flex flex-col justify-between h-full">
                             <div class="flex items-center space-x-2 text-iosAmber mb-2">
                                 <i class="ph-bold ph-medal text-lg"></i>
-                                <span class="text-[10px] font-black uppercase tracking-widest">Moje maxima</span>
+                                <span class="text-[10px] font-black uppercase tracking-widest">Rekordy</span>
                             </div>
-                            ${randomPRHtml}
+                            ${allPRs.length > 0 ? `<div id="home-pr-widget-content" class="mt-2 text-left h-[48px] flex flex-col justify-center transition-opacity duration-500"></div>` : `<div class="text-sm font-bold text-slate-300 mt-2 leading-tight">Prozkoumej své<br>nejlepší výkony</div>`}
                         </div>
+                    `;
+                }
+
+                if (id === 'neglected') {
+                    if (isQ) {
+                        return `
+                            <div class="glass-panel rounded-[2rem] ${pClass} h-full flex flex-col justify-center items-center text-center ${neglected.length === 0 ? 'bg-iosGreen/5 border-iosGreen/20' : ''}">
+                                ${neglected.length === 0 
+                                    ? `<i class="ph-fill ph-check-circle text-[32px] text-iosGreen"></i>` 
+                                    : `<i class="ph-fill ph-warning text-[28px] text-iosRed mb-1"></i><span class="text-sm font-black text-white">${neglected.length}</span>`
+                                }
+                            </div>
+                        `;
+                    }
+                    
+                    if (neglected.length === 0) {
+                        return `
+                            <div class="glass-panel rounded-[2rem] p-6 h-full flex flex-col justify-center relative overflow-hidden border border-iosGreen/20 bg-iosGreen/5">
+                                <div class="absolute -right-4 -top-4 w-32 h-32 bg-iosGreen/20 rounded-full blur-[40px] pointer-events-none"></div>
+                                <div class="relative z-10">
+                                    <span class="text-[11px] text-iosGreen uppercase font-black tracking-widest">Tip pro tento týden</span>
+                                    <h3 class="text-lg font-bold text-white mt-1">Vše odcvičeno! 🎉</h3>
+                                    <p class="text-[12px] text-slate-300 mt-1.5 leading-relaxed font-medium">Skvělá práce! Úspěšně jsi zasáhl všechny svalové partie. V pondělí začínáme nanovo.</p>
+                                    <div class="mt-4 flex items-center space-x-2 text-iosGreen font-bold text-sm">
+                                        <i class="ph-fill ph-check-circle text-xl"></i>
+                                        <span>Kompletní týdenní cyklus</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        let neglectedPills = `<div class="flex flex-wrap gap-2 mt-3">` + neglected.map(m => `<span class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-[11px] font-bold text-slate-300 shadow-sm">${m}</span>`).join('') + `</div>`;
+                        return `
+                            <div class="glass-panel rounded-[2rem] p-6 h-full flex flex-col justify-center">
+                                <span class="text-[11px] text-iosRed uppercase font-black tracking-widest">Tip pro tento týden</span>
+                                <h3 class="text-lg font-bold text-white mt-1">Zanedbané svaly</h3>
+                                <p class="text-[11px] text-slate-400 mt-1 leading-tight">Zatím jsi od pondělí neprocvičil tyto partie:</p>
+                                ${neglectedPills}
+                            </div>
+                        `;
+                    }
+                }
+                return '';
+            };
+
+            let layoutHtml = state.homeLayout.filter(w => w.visible).map(w => {
+                let sizeClass = 'col-span-4'; 
+                if (w.size === 'half') sizeClass = 'col-span-2';
+                if (w.size === 'quarter') sizeClass = 'col-span-1';
+                return `<div class="${sizeClass} flex flex-col">${getWidgetHtml(w.id, w.size || 'full')}</div>`;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-4 gap-4 pb-4">
+                        ${layoutHtml}
                     </div>
-
-                    <!-- Widget: Zanedbané svaly dole -->
-                    ${neglectedWidgetHtml}
-
+                    <div class="flex justify-center pb-8">
+                        <button onclick="openHomeLayoutEditor()" class="px-6 py-4 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-slate-400 flex items-center space-x-2 active:opacity-50 transition-all shadow-sm">
+                            <i class="ph-bold ph-faders text-base"></i>
+                            <span>Upravit rozložení plochy</span>
+                        </button>
+                    </div>
                 </div>
             `;
         }
@@ -1208,9 +1438,8 @@
                 <div class="space-y-6">
                     <div class="glass-panel rounded-3xl p-5 flex items-center justify-between">
                         <div>
-                            <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest">Přehled a míry</span>
-                            <h2 class="text-2xl font-bold tracking-tight text-white mt-1">Moje tělo</h2>
-                            <p class="text-[13px] text-slate-400 mt-1">Klepnutím na panel upravte a prohlédněte historii.</p>
+                            <h2 class="text-xl font-black text-iosTeal uppercase tracking-widest mb-1">Přehled a míry</h2>
+                            <p class="text-[13px] text-slate-400">Klepnutím na panel upravte a prohlédněte historii.</p>
                         </div>
                         <div class="p-4 bg-white/5 rounded-2xl text-slate-400 text-xs font-semibold text-center">
                             <span class="block text-white font-black text-xl">${new Date().getDate()}</span>
@@ -1270,20 +1499,24 @@
                     const today = getToday();
                     const html = `
                         <div class="space-y-6 text-center">
-                            <div>
-                                <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest">Nová fotka pokroku</span>
-                                <h3 class="text-2xl font-extrabold text-white mt-2">Kdy byla pořízena?</h3>
-                                <p class="text-sm text-slate-400 mt-1">Zvolte datum období pro zobrazení v kalendáři.</p>
+                            <div class="flex justify-between items-start w-full">
+                                <div class="w-10"></div>
+                                <div class="text-center flex flex-col items-center">
+                                    <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest block">Nová fotka pokroku</span>
+                                    <h3 class="text-2xl font-extrabold text-white mt-1">Kdy byla pořízena?</h3>
+                                </div>
+                                <button onclick="closeRollout()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-slate-400 active:opacity-50 transition-opacity">
+                                    <i class="ph-bold ph-x text-lg"></i>
+                                </button>
                             </div>
+
+                            <p class="text-sm text-slate-400 mt-1">Zvolte datum období pro zobrazení v kalendáři.</p>
 
                             <div class="glass-panel rounded-3xl p-6 space-y-4 flex justify-center">
                                 <input type="date" id="photo-period-date" value="${today}" max="${today}" style="text-align: center; -webkit-appearance: none; display: block;" class="w-full py-4 px-5 text-center rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-lg focus:outline-none focus:border-iosTeal transition-colors block appearance-none">
                             </div>
 
-                            <div class="flex space-x-3 pt-2">
-                                <button onclick="closeRollout()" class="flex-1 py-4 rounded-2xl bg-white/5 border border-white/5 text-slate-300 font-bold text-base active:opacity-50 transition-opacity">Zrušit</button>
-                                <button onclick="saveTempPhotoWithDate()" class="flex-[2] py-4 rounded-2xl bg-iosTeal text-black font-extrabold text-base active:opacity-50 transition-opacity shadow-lg shadow-iosTeal/20">Uložit do kalendáře</button>
-                            </div>
+                            <button onclick="saveTempPhotoWithDate()" class="w-full py-5 rounded-2xl bg-iosTeal text-black font-extrabold text-base active:opacity-50 transition-opacity shadow-lg shadow-iosTeal/20">Uložit do kalendáře</button>
                         </div>
                     `;
                     openRollout(html);
@@ -1606,6 +1839,9 @@
                                 <div class="flex space-x-2 z-10" onclick="event.stopPropagation()">
                                     <button onclick="openWorkoutDayEditor('${day.id}')" class="w-12 h-12 rounded-2xl bg-white/5 border border-white/5 text-slate-400 flex items-center justify-center active:opacity-50 transition-opacity">
                                         <i class="ph-bold ph-pencil-simple text-xl"></i>
+                                    </button>
+                                    <button onclick="deleteWorkoutDayConfirm('${day.id}')" class="w-12 h-12 rounded-2xl bg-iosRed/10 border border-iosRed/20 text-iosRed flex items-center justify-center active:opacity-50 transition-opacity">
+                                        <i class="ph-bold ph-trash text-xl"></i>
                                     </button>
                                 </div>
                             </div>
@@ -2100,6 +2336,7 @@
                     }
 
                     state.history[targetDate][state.activeWorkout.dayId] = sessionLogs;
+                    state.lastCompletedWorkoutId = state.activeWorkout.dayId;
                     showWorkoutSummaryRollout(totalSets, totalVolume, newPRs, muscleLoad);
                 },
                 null,
@@ -2203,7 +2440,7 @@
             if (timerInterval) clearInterval(timerInterval);
             saveState();
             closeRollout();
-            switchTab('domu'); 
+            proceedSwitchTab('domu'); 
             showToast("Trénink úspěšně uložen!");
         };
 
@@ -2221,7 +2458,7 @@
             window.editorDraft = JSON.parse(JSON.stringify(editingDay));
             window.editorState = { expandedCats: {}, expandedSubCats: {} };
 
-            renderEditorView(app);
+            renderView();
         }
 
         function renderEditorView(container) {
@@ -2351,7 +2588,7 @@
                     <div class="glass-panel rounded-3xl p-6 space-y-6">
                         <div class="space-y-2">
                             <label class="block text-xs text-slate-500 uppercase font-black tracking-widest pl-1">Název tréninkového plánu</label>
-                            <input type="text" id="editor-day-name" value="${draft.name}" placeholder="Např. Push Day, Spodek Těla..." class="w-full py-4 px-5 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-lg focus:outline-none focus:border-iosTeal">
+                            <input type="text" id="editor-day-name" value="${draft.name}" oninput="window.editorDraft.name = this.value" placeholder="Např. Push Day, Spodek Těla..." class="w-full py-4 px-5 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-lg focus:outline-none focus:border-iosTeal">
                         </div>
 
                         <div class="space-y-3 pt-4 border-t border-white/5 overflow-x-auto no-scrollbar">
@@ -2390,12 +2627,12 @@
             `;
         }
 
-        window.setDraftColor = (col) => { window.editorDraft.color = col; renderEditorView(document.getElementById('app-content')); };
+        window.setDraftColor = (col) => { window.editorDraft.color = col; renderView(); };
         window.adjustDraftSets = (idx, amount) => {
             const draft = window.editorDraft;
             let current = draft.exercises[idx].targetSets || 4;
             draft.exercises[idx].targetSets = Math.max(1, Math.min(10, current + amount));
-            renderEditorView(document.getElementById('app-content'));
+            renderView();
         };
 
         window.toggleCategoryInEditor = (cat) => {
@@ -2408,14 +2645,14 @@
             } else {
                 window.editorDraft.categories.push(cat);
             }
-            renderEditorView(document.getElementById('app-content'));
+            renderView();
         };
 
         window.toggleExerciseInEditor = (ex, isChecked) => {
             const index = window.editorDraft.exercises.findIndex(eObj => eObj.name === ex);
             if (isChecked && index === -1) window.editorDraft.exercises.push({ name: ex, targetSets: 4 });
             else if (!isChecked && index > -1) window.editorDraft.exercises.splice(index, 1);
-            renderEditorView(document.getElementById('app-content'));
+            renderView();
         };
 
         window.reorderExerciseInEditor = (idx, shift) => {
@@ -2425,30 +2662,30 @@
                 const temp = draft.exercises[idx];
                 draft.exercises[idx] = draft.exercises[targetIdx];
                 draft.exercises[targetIdx] = temp;
-                renderEditorView(document.getElementById('app-content'));
+                renderView();
             }
         };
 
         window.toggleEditorCat = (cat) => {
             window.editorState.expandedCats[cat] = !window.editorState.expandedCats[cat];
-            renderEditorView(document.getElementById('app-content'));
+            renderView();
         };
 
         window.toggleEditorSubCat = (subCatId) => {
             window.editorState.expandedSubCats[subCatId] = !window.editorState.expandedSubCats[subCatId];
-            renderEditorView(document.getElementById('app-content'));
+            renderView();
         };
 
         function exitEditorWithoutSaving() {
             showCustomConfirm(
                 "Zahodit změny?",
                 "Opravdu si přejete ukončit editor tréninkového plánu? Veškeré úpravy budou zahozeny.",
-                () => { state.currentTab = 'trenink'; saveState(); renderView(); }
+                () => { proceedSwitchTab('trenink'); }
             );
         }
 
         function saveWorkoutDayFromEditor() {
-            const nameVal = document.getElementById('editor-day-name').value.trim();
+            const nameVal = window.editorDraft.name.trim();
             if (!nameVal) { showToast("Název plánu nesmí být prázdný!"); return; }
             if (window.editorDraft.exercises.length === 0) { showToast("Zvolte alespoň jeden cvik!"); return; }
 
@@ -2458,19 +2695,23 @@
             if (exIndex > -1) state.workoutDays[exIndex] = window.editorDraft;
             else state.workoutDays.push(window.editorDraft);
 
-            state.currentTab = 'trenink';
             saveState();
-            renderView();
+            proceedSwitchTab('trenink');
             showToast("Trénink úspěšně uložen!");
         }
 
-        function deleteWorkoutDayConfirm(dayId) {
+        window.deleteWorkoutDayConfirm = (dayId) => {
             showCustomConfirm(
                 "Smazat plán?",
                 "Opravdu si přejete smazat tento tréninkový plán? Záznamy v historii kalendáře zůstanou nedotčeny.",
-                () => { state.workoutDays = state.workoutDays.filter(d => d.id !== dayId); saveState(); renderView(); showToast("Plán úspěšně smazán"); }
+                () => { 
+                    state.workoutDays = state.workoutDays.filter(d => d.id !== dayId); 
+                    saveState(); 
+                    proceedSwitchTab('trenink');
+                    showToast("Plán úspěšně smazán"); 
+                }
             );
-        }
+        };
 
         /* ----- Kalendář a Historie ----- */
         let calYear = new Date().getFullYear();
@@ -2481,7 +2722,7 @@
             window.pendingRetroDate = dateStr;
             closeRollout();
             setTimeout(() => {
-                switchTab('trenink');
+                proceedSwitchTab('trenink');
             }, 300); 
         };
 
@@ -2977,7 +3218,7 @@
             container.innerHTML = `
                 <div class="space-y-6 pb-6">
                     <div class="flex justify-between items-center mb-6">
-                        <button onclick="renderView()" class="px-5 py-3 rounded-xl bg-white/5 text-slate-300 font-bold active:opacity-50 transition-opacity">Zpět</button>
+                        <button onclick="proceedSwitchTab('domu')" class="px-5 py-3 rounded-xl bg-white/5 text-slate-300 font-bold active:opacity-50 transition-opacity">Zpět</button>
                         <h2 class="text-2xl font-black text-white">Nastavení</h2>
                         <div class="w-16"></div>
                     </div>
@@ -3029,11 +3270,10 @@
                     </div>
 
                     <div class="text-center text-[11px] text-slate-600 font-extrabold uppercase tracking-widest mt-10 pb-6">
-                        SvalStats Premium v6.9<br>Designed for iOS PWA
+                        SvalStats Premium v7.1<br>Designed for iOS PWA
                     </div>
                 </div>
             `;
-            lucide.createIcons();
         }
 
         window.toggleLegalInfo = () => {
@@ -3242,7 +3482,7 @@
             const html = `
                 <div class="text-center flex flex-col h-full relative w-full">
                     <div class="flex-shrink-0 mb-4">
-                        <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest">Krok 2 ze 3</span>
+                        <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest">Plán ${window.wizardState.currentDay} z ${window.wizardState.totalDays}</span>
                         <h3 class="text-2xl font-extrabold text-white mt-1">Nastavení tréninku</h3>
                     </div>
 
@@ -3250,7 +3490,7 @@
                         <div class="glass-panel rounded-3xl p-5 space-y-5 mb-6">
                             <div class="space-y-2">
                                 <label class="block text-[11px] text-slate-500 uppercase font-black tracking-widest pl-1">Název dne</label>
-                                <input type="text" id="wiz-day-name" value="${dayData.name}" class="w-full py-4 px-5 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-lg focus:outline-none focus:border-iosTeal">
+                                <input type="text" id="wiz-day-name" value="${dayData.name}" oninput="window.wizardState.days[window.wizardState.currentDay - 1].name = this.value" class="w-full py-4 px-5 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-lg focus:outline-none focus:border-iosTeal">
                             </div>
                             
                             <div class="space-y-3 pt-2">
@@ -3275,7 +3515,7 @@
                 </div>
             `;
 
-            openRollout(html);
+            openRollout(html, true);
         };
 
         window.toggleWizCategory = (cat) => {
@@ -3289,7 +3529,6 @@
             } else {
                 dayData.categories.push(cat);
             }
-            dayData.name = document.getElementById('wiz-day-name').value;
             renderWizardStep();
         };
 
@@ -3302,8 +3541,7 @@
 
         window.nextWizardStep = () => {
             const dayData = window.wizardState.days[window.wizardState.currentDay - 1];
-            dayData.name = document.getElementById('wiz-day-name').value || `Den ${window.wizardState.currentDay}`;
-
+            
             if (dayData.categories.length === 0) { showToast("Zvolte alespoň jednu partii!"); return; }
             if (dayData.exercises.length === 0) { showToast("Zvolte alespoň jeden cvik!"); return; }
 
@@ -3325,7 +3563,7 @@
                 saveState();
                 closeRollout();
                 
-                switchTab('domu');
+                proceedSwitchTab('domu');
                 showToast("SvalStats úspěšně nastaveno!");
             }
         };
@@ -3346,7 +3584,9 @@
                 if (!isDragging) return;
                 currentY = e.touches[0].clientY;
                 const diff = currentY - startY;
-                if (diff > 0) panel.style.transform = `translateY(${diff}px)`;
+                if (diff > 0) {
+                    panel.style.transform = `translateY(${diff}px)`;
+                }
             });
 
             handle.addEventListener('touchend', (e) => {
@@ -3354,15 +3594,20 @@
                 isDragging = false;
                 panel.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
                 const diff = currentY - startY;
-                if (diff > 80 && rolloutDismissible) closeRollout();
-                else panel.style.transform = ''; 
+                if (diff > 80 && rolloutDismissible) { 
+                    closeRollout();
+                } else {
+                    panel.style.transform = ''; 
+                }
             });
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             loadState();
             initDB().then(() => {
-                if (state.onboarded && state.currentTab === 'profil') loadPhotosAndRender();
+                if (state.onboarded && state.currentTab === 'profil') {
+                    loadPhotosAndRender();
+                }
             });
             
             initRolloutGestures();
@@ -3373,8 +3618,11 @@
                 }
             });
 
-            if (!state.onboarded) openOnboardingConsent();
-            else switchTab(state.currentTab);
+            if (!state.onboarded) {
+                openOnboardingConsent();
+            } else {
+                proceedSwitchTab(state.currentTab);
+            }
         });
     </script>
 </body>
