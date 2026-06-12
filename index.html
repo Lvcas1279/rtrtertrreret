@@ -68,9 +68,16 @@
             --sab: env(safe-area-inset-bottom, 0px);
         }
 
-        /* Hide Scrollbars */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Hide ALL Scrollbars globally */
+        ::-webkit-scrollbar { 
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+        * { 
+            -ms-overflow-style: none !important; 
+            scrollbar-width: none !important; 
+        }
 
         /* Standard Glass Panels */
         .glass-panel {
@@ -872,16 +879,6 @@
                         </div>
                     </div>
 
-                    <div class="glass-panel rounded-3xl p-6">
-                        <label class="block text-sm text-slate-400 font-bold mb-4">Aktuální série (týdny)</label>
-                        <div class="flex items-center justify-center space-x-6">
-                            <button onclick="adjustStreakOffset(-1)" class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 text-white active:opacity-50 text-3xl font-light">-</button>
-                            <span id="edit-weekly-streak" class="text-5xl font-black text-iosAmber w-16 text-center">${data.weeklyStreak}</span>
-                            <button onclick="adjustStreakOffset(1)" class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 text-white active:opacity-50 text-3xl font-light">+</button>
-                        </div>
-                        <p class="text-[11px] text-slate-500 mt-4 leading-tight">Úpravou přidáte nebo odeberete týdny k vaší historicky vypočítané sérii.</p>
-                    </div>
-
                     <button onclick="closeRollout(); renderView(); showToast('Nastavení uloženo');" class="w-full py-5 rounded-3xl bg-gradient-to-tr from-iosAmber to-yellow-500 text-black font-extrabold text-lg active:opacity-50 transition-opacity shadow-lg shadow-iosAmber/20 mt-4">Hotovo</button>
                 </div>
             `;
@@ -892,13 +889,12 @@
             state.weeklyGoal = Math.max(1, Math.min(7, (state.weeklyGoal || 3) + diff));
             document.getElementById('edit-weekly-goal').textContent = state.weeklyGoal;
             saveState();
-            document.getElementById('edit-weekly-streak').textContent = getStreakData().weeklyStreak;
         };
 
-        window.adjustStreakOffset = (diff) => {
-            state.streakOffset = (state.streakOffset || 0) + diff;
-            saveState();
-            document.getElementById('edit-weekly-streak').textContent = getStreakData().weeklyStreak;
+        window.startWorkoutFromHome = (dayId) => {
+            state.currentTab = 'trenink';
+            switchTabVisuals('trenink');
+            selectWorkoutDay(dayId);
         };
 
         function renderDomuView(container) {
@@ -979,7 +975,7 @@
                 const day = getNextWorkoutDay() || state.workoutDays[0];
                 const colTheme = COLOR_THEMES[day.color] || COLOR_THEMES.cyan;
                 nextWorkoutHtml = `
-                    <div onclick="switchTab('trenink'); toggleDayExpand('${day.id}')" class="p-4 rounded-[1.5rem] bg-black/40 border border-white/5 active:opacity-50 transition-opacity cursor-pointer mt-3 flex justify-between items-center">
+                    <div onclick="startWorkoutFromHome('${day.id}')" class="p-4 rounded-[1.5rem] bg-black/40 border border-white/5 active:opacity-50 transition-opacity cursor-pointer mt-3 flex justify-between items-center">
                         <div class="flex items-center space-x-3">
                             <span class="w-3 h-3 rounded-full" style="background-color: ${colTheme.marker}; box-shadow: 0 0 8px ${colTheme.marker}"></span>
                             <span class="font-black text-white text-base">${day.name}</span>
@@ -1247,8 +1243,8 @@
                                 <p class="text-sm text-slate-400 mt-1">Zvolte datum období pro zobrazení v kalendáři.</p>
                             </div>
 
-                            <div class="glass-panel rounded-3xl p-6 space-y-4">
-                                <input type="date" id="photo-period-date" value="${today}" max="${today}" class="w-full py-4 px-5 text-center rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-lg focus:outline-none focus:border-iosTeal transition-colors">
+                            <div class="glass-panel rounded-3xl p-6 space-y-4 flex justify-center">
+                                <input type="date" id="photo-period-date" value="${today}" max="${today}" style="text-align: center; -webkit-appearance: none; display: block;" class="w-full py-4 px-5 text-center rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-lg focus:outline-none focus:border-iosTeal transition-colors block appearance-none">
                             </div>
 
                             <div class="flex space-x-3 pt-2">
@@ -1366,18 +1362,24 @@
             `).join('');
 
             const html = `
-                <div class="space-y-6 text-center">
-                    <div>
-                        <div class="px-5 py-2 rounded-full bg-white/5 border border-white/10 flex items-center space-x-2 mb-4 mx-auto w-fit">
-                            <i class="ph-bold ph-${metric.icon} ${metric.color} text-sm"></i>
-                            <span class="text-[11px] font-black uppercase tracking-widest ${metric.color}">${metric.name}</span>
+                <div class="space-y-6 text-center relative">
+                    <div class="flex justify-between items-start w-full">
+                        <div class="w-10"></div>
+                        <div class="flex flex-col items-center">
+                            <div class="px-5 py-2 rounded-full bg-white/5 border border-white/10 flex items-center space-x-2 mb-3 mx-auto w-fit">
+                                <i class="ph-bold ph-${metric.icon} ${metric.color} text-sm"></i>
+                                <span class="text-[11px] font-black uppercase tracking-widest ${metric.color}">${metric.name}</span>
+                            </div>
+                            <h3 class="text-2xl font-extrabold text-white">Záznam hodnoty</h3>
                         </div>
-                        <h3 class="text-2xl font-extrabold text-white mt-2">Záznam hodnoty</h3>
+                        <button onclick="closeRollout()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-slate-400 active:opacity-50 transition-opacity">
+                            <i class="ph-bold ph-x text-lg"></i>
+                        </button>
                     </div>
 
-                    <div class="flex flex-col space-y-2 text-left">
+                    <div class="flex flex-col space-y-2 text-left mt-4">
                         <label class="block text-[11px] text-slate-500 uppercase font-black tracking-widest pl-1">Datum měření</label>
-                        <input type="date" id="biometric-date" value="${getToday()}" max="${getToday()}" class="w-full py-4 px-5 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-base focus:outline-none focus:border-iosTeal transition-colors">
+                        <input type="date" id="biometric-date" value="${getToday()}" max="${getToday()}" style="text-align: center; -webkit-appearance: none; display: block;" class="w-full py-4 px-5 text-center rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-base focus:outline-none focus:border-iosTeal transition-colors block appearance-none">
                     </div>
 
                     <div class="glass-panel rounded-3xl p-6 flex flex-col items-center justify-center space-y-5">
@@ -1436,7 +1438,7 @@
             state.biometrics[targetDate][metricId] = val;
             
             saveState();
-            openBiometricRollout(metricId); 
+            closeRollout(); // Explicitně zavřít okno
             renderView();
             showToast("Záznam úspěšně uložen");
         };
@@ -2545,10 +2547,16 @@
                 }
 
                 let html = `
-                    <div class="space-y-8">
-                        <div class="text-center">
-                            <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest">Detail dne</span>
-                            <h3 class="text-3xl font-extrabold text-white mt-2">${formatDateCzech(dateStr)}</h3>
+                    <div class="space-y-8 relative">
+                        <div class="flex justify-between items-start">
+                            <div class="w-10"></div>
+                            <div class="text-center flex flex-col items-center">
+                                <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest block">Detail dne</span>
+                                <h3 class="text-3xl font-extrabold text-white mt-1">${formatDateCzech(dateStr)}</h3>
+                            </div>
+                            <button onclick="closeRollout()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-slate-400 active:opacity-50 transition-opacity">
+                                <i class="ph-bold ph-x text-lg"></i>
+                            </button>
                         </div>
                 `;
 
@@ -2651,7 +2659,6 @@
                 }
 
                 html += `
-                        <button onclick="closeRollout()" class="w-full py-5 rounded-3xl bg-white/5 border border-white/5 font-extrabold text-base text-slate-200 mt-4 active:opacity-50 transition-opacity">Zavřít panel</button>
                     </div>
                 `;
 
@@ -2823,16 +2830,20 @@
             }).join('');
 
             const html = `
-                <div class="space-y-6">
-                    <div class="text-center">
-                        <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest">Analýza cviků</span>
-                        <h3 class="text-2xl font-extrabold text-white mt-1">Zvolte cvik</h3>
-                        <p class="text-sm text-slate-400 mt-1">Vyberte cvik k analýze vývoje na grafu</p>
+                <div class="space-y-6 relative">
+                    <div class="flex justify-between items-start w-full">
+                        <div class="w-10"></div>
+                        <div class="text-center flex flex-col items-center">
+                            <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest block">Analýza cviků</span>
+                            <h3 class="text-2xl font-extrabold text-white mt-1">Zvolte cvik</h3>
+                        </div>
+                        <button onclick="closeRollout()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-slate-400 active:opacity-50 transition-opacity">
+                            <i class="ph-bold ph-x text-lg"></i>
+                        </button>
                     </div>
                     <div class="space-y-3 max-h-[50vh] overflow-y-auto no-scrollbar pt-3" style="-webkit-overflow-scrolling: touch;">
                         ${exerciseItemsHtml}
                     </div>
-                    <button onclick="closeRollout()" class="w-full py-5 rounded-2xl bg-white/5 border border-white/5 font-extrabold text-base text-slate-200 mt-4 active:opacity-50 transition-opacity">Zavřít</button>
                 </div>
             `;
             openRollout(html);
@@ -2985,7 +2996,7 @@
                     </div>
 
                     <div class="text-center text-[11px] text-slate-600 font-extrabold uppercase tracking-widest mt-10 pb-6">
-                        SvalStats Premium v6.8<br>Designed for iOS PWA
+                        SvalStats Premium v6.9<br>Designed for iOS PWA
                     </div>
                 </div>
             `;
