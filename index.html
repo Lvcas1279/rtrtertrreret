@@ -47,7 +47,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* Modern iOS PWA layout - no absolute fixed cropping */
+        /* Modern iOS PWA layout */
         body, html {
             min-height: 100vh;
             min-height: 100dvh;
@@ -62,24 +62,16 @@
             flex-direction: column;
         }
 
-        /* Safe Area Configuration for iOS */
+        /* Safe Area Configuration */
         :root {
             --sat: env(safe-area-inset-top, 0px);
             --sab: env(safe-area-inset-bottom, 0px);
         }
 
         /* Hide ALL Scrollbars globally */
-        ::-webkit-scrollbar { 
-            display: none !important;
-            width: 0 !important;
-            height: 0 !important;
-        }
-        * { 
-            -ms-overflow-style: none !important; 
-            scrollbar-width: none !important; 
-        }
+        ::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+        * { -ms-overflow-style: none !important; scrollbar-width: none !important; }
 
-        /* Standard Glass Panels */
         .glass-panel {
             background: rgba(18, 18, 21, 0.45);
             backdrop-filter: blur(30px);
@@ -97,7 +89,6 @@
             border-bottom: 0.5px solid rgba(255, 255, 255, 0.05);
         }
 
-        /* Floating Pill Tabbar */
         .layout-tabbar {
             position: fixed;
             bottom: 0;
@@ -112,17 +103,13 @@
             z-index: 50;
         }
 
-        /* Pure Liquid Glass Pill */
         .tabbar-pill {
             pointer-events: auto;
             background: linear-gradient(135deg, rgba(30, 30, 35, 0.75) 0%, rgba(20, 20, 24, 0.85) 100%);
             backdrop-filter: blur(40px) saturate(200%);
             -webkit-backdrop-filter: blur(40px) saturate(200%);
             border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 
-                inset 0 1px 1px rgba(255, 255, 255, 0.15),
-                0 20px 40px -10px rgba(0,0,0,0.9),
-                0 0 0 1px rgba(0,0,0,0.5);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 20px 40px -10px rgba(0,0,0,0.9), 0 0 0 1px rgba(0,0,0,0.5);
             width: 100%;
             border-radius: 2.2rem;
             padding: 6px;
@@ -140,7 +127,6 @@
             padding-bottom: max(var(--sab), 24px);
         }
 
-        /* Animations */
         @keyframes liquidOrbit1 {
             0% { transform: translate(0px, 0px) scale(1) rotate(0deg); }
             50% { transform: translate(50px, -40px) scale(1.15) rotate(180deg); }
@@ -159,11 +145,9 @@
         .liquid-blob-1 { animation: liquidOrbit1 20s infinite ease-in-out; }
         .liquid-blob-2 { animation: liquidOrbit2 25s infinite ease-in-out; }
         .animate-fade-in { animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
         .rollout-backdrop { transition: opacity 0.35s cubic-bezier(0.25, 1, 0.5, 1); }
         .rollout-panel { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
 
-        /* Disable zoom on iOS */
         input[type="number"], input[type="text"], input[type="date"], textarea {
             font-size: 16px !important;
         }
@@ -210,7 +194,7 @@
                 <i class="ph-fill ph-house text-[24px]"></i>
                 <span class="text-[10px] font-semibold mt-0.5 tracking-wide">Domů</span>
             </button>
-            <button onclick="switchTab('trenink')" id="tab-trenink" class="flex flex-col items-center justify-center flex-1 h-[52px] rounded-[1.2rem] text-slate-400 active:opacity-50 transition-opacity">
+            <button onclick="proceedSwitchTab('trenink')" id="tab-trenink" class="flex flex-col items-center justify-center flex-1 h-[52px] rounded-[1.2rem] text-slate-400 active:opacity-50 transition-opacity">
                 <i class="ph-fill ph-barbell text-[24px]"></i>
                 <span class="text-[10px] font-semibold mt-0.5 tracking-wide">Trénink</span>
             </button>
@@ -281,7 +265,7 @@
             },
             "Biceps": {
                 "Long Head": ["Incline Dumbbell Curl", "Alternating Dumbbell Curl", "Drag Curl", "Close-Grip EZ-Bar Curl", "Bayesian Cable Curl", "Standing Barbell Curl", "Cable Curl", "Spider Curl", "Single-Arm Cable Curl", "Cross-Body Curl"],
-                "Short Head": ["Preacher Curl", "Wide-Grip EZ-Bar Curl", "Concentration Curl", "Machine Preacher Curl", "High Cable Curl", "Dumbbell Curl", "Seated Dumbbell Curl", "Scott Curl", "Cable Preacher Curl", "Double Biceps Cable Curl"],
+                "Short Head": ["Preacher Curl", "Wide-Grip EZ-Bar Curl", "Concentration Item", "Machine Preacher Curl", "High Cable Curl", "Dumbbell Curl", "Seated Dumbbell Curl", "Scott Curl", "Cable Preacher Curl", "Double Biceps Cable Curl"],
                 "Brachialis": ["Hammer Curl", "Rope Hammer Curl", "Cross-Body Hammer Curl", "Reverse Curl", "EZ-Bar Reverse Curl", "Dumbbell Reverse Curl", "Cable Hammer Curl", "Preacher Hammer Curl", "Neutral-Grip Chin-Up", "Machine Hammer Curl"]
             },
             "Triceps": {
@@ -294,7 +278,7 @@
                 "Wrist Extensors": ["Reverse Wrist Curl", "Dumbbell Reverse Wrist Curl", "Cable Reverse Wrist Curl", "Barbell Reverse Curl", "EZ-Bar Reverse Curl", "Plate Reverse Curl", "Hammer Curl", "Rope Hammer Curl", "Reverse Cable Curl", "Wrist Roller"]
             },
             "Břicho": {
-                "Upper Abs": ["Crunch", "Cable Crunch", "Machine Crunch", "Weighted Crunch", "Decline Crunch", "Swiss Ball Crunch", "Toe Touch Crunch", "V-Up", "Sit-Up", "Ab Roller"],
+                "Upper Abs": ["Crunch", "Cable Crunch", "Machine Crunch", "Weighted Crunch", "Decline Crunch", "Swiss Ball Shelf", "Toe Touch Crunch", "V-Up", "Sit-Up", "Ab Roller"],
                 "Lower Abs": ["Hanging Leg Raise", "Hanging Knee Raise", "Reverse Crunch", "Lying Leg Raise", "Flutter Kick", "Scissor Kick", "Toes-to-Bar", "Captain's Chair Leg Raise", "Dragon Flag", "Garhammer Raise"],
                 "Obliques": ["Russian Twist", "Cable Woodchopper", "Side Paragraph", "Landmine Rotation", "Bicycle Crunch", "Dumbbell Side Bend", "Hanging Oblique Raise", "Oblique Crunch", "Pallof Press", "Medicine Ball Twist"]
             },
@@ -368,6 +352,7 @@
 
         const dbName = "SvalStatsDB";
         let db;
+        
         function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(dbName, 1);
@@ -670,6 +655,7 @@
         };
 
         const formatDateCzech = (dateStr) => {
+            if (!dateStr) return '—';
             const [y, m, d] = dateStr.split('-');
             return `${parseInt(d)}. ${parseInt(m)}. ${y}`;
         };
@@ -717,8 +703,6 @@
             if (app) app.scrollTop = 0; 
             
             renderView();
-            
-            if (app) app.scrollTop = 0; 
         }
 
         function renderView() {
@@ -740,7 +724,6 @@
             app.scrollTop = prevScroll; 
         }
 
-        /* ----- Vlastní Cviky Helper ----- */
         window.addCustomExercise = (category, subCategory, source) => {
             const subCatIdSafe = subCategory.replace(/\s+/g, '-');
             let inputEl;
@@ -779,7 +762,6 @@
             showToast("Cvik úspěšně vytvořen do: " + subCategory);
         };
 
-        /* ----- Získání historie maximální váhy cviku (pro doporučení) ----- */
         function getLastWeightForExercise(ex) {
             const sortedDates = Object.keys(state.history).sort().reverse();
             for (const date of sortedDates) {
@@ -794,7 +776,14 @@
             return null;
         }
 
-        /* ----- Získání dalšího tréninkového plánu v pořadí ----- */
+        function getPreviousPerformance(ex) {
+            const pb = getExerciseRecordPB(ex);
+            if (pb && pb.weight > 0) {
+                return `${pb.weight} kg × ${pb.reps}`;
+            }
+            return '—';
+        }
+
         function getNextWorkoutDay() {
             if (state.workoutDays.length === 0) return null;
             
@@ -807,7 +796,6 @@
             return state.workoutDays[0];
         }
 
-        /* ----- Domů (Streaks & Widgets) ----- */
         function getStreakData() {
             const goal = state.weeklyGoal || 3;
             const now = new Date();
@@ -898,7 +886,7 @@
                 <div class="space-y-6 text-center">
                     <div>
                         <div class="px-5 py-2 rounded-full bg-iosAmber/15 border border-iosAmber/30 flex items-center space-x-2 mb-4 mx-auto w-fit">
-                            <i class="ph-fill ph-fire text-iosAmber"></i>
+                            <i class="ph-fill ph-fire text-iosAmber text-base"></i>
                             <span class="text-[11px] font-black uppercase tracking-widest text-iosAmber">Nastavení cílů</span>
                         </div>
                         <h3 class="text-2xl font-extrabold text-white mt-2">Série a Cíle</h3>
@@ -926,33 +914,8 @@
         };
 
         window.startWorkoutFromHome = (dayId) => {
-            state.currentTab = 'trenink';
-            switchTabVisuals('trenink');
-            
-            const day = state.workoutDays.find(d => d.id === dayId);
-            if (!day) return;
-            
-            window.pendingRetroDate = null; 
-            window.activeWorkoutCollapsed = {}; 
-
-            state.activeWorkout = {
-                dayId: dayId,
-                name: day.name,
-                color: day.color || 'cyan',
-                startTime: Date.now(),
-                targetDate: getToday(), 
-                logs: {},
-                notes: {} 
-            };
-
-            day.exercises.forEach(exObj => {
-                const name = exObj.name;
-                const setsCount = exObj.targetSets || 4;
-                state.activeWorkout.logs[name] = Array.from({ length: setsCount }, () => ({ weight: '', reps: '' }));
-            });
-
-            saveState();
-            renderView();
+            proceedSwitchTab('trenink');
+            selectWorkoutDay(dayId);
         };
 
         window.openHomeLayoutEditor = () => {
@@ -1086,19 +1049,18 @@
                 if (pb.weight > 0) allPRs.push({ ex, ...pb });
             });
 
-            // Re-setup random PR logic specific to sizes
             if (window.prInterval) clearInterval(window.prInterval);
             if (allPRs.length > 0) {
                 setTimeout(() => {
                     const updatePRWidget = () => {
-                        const prContainerFullHalf = document.getElementById('home-pr-widget-content');
+                        const prContainer = document.getElementById('home-pr-widget-content');
                         const prContainerQuarter = document.getElementById('home-pr-widget-content-quarter');
-                        if (!prContainerFullHalf && !prContainerQuarter) return;
+                        if (!prContainer && !prContainerQuarter) return;
                         
                         const randomPR = allPRs[Math.floor(Math.random() * allPRs.length)];
                         
-                        if (prContainerFullHalf) {
-                            prContainerFullHalf.style.opacity = 0;
+                        if (prContainer) {
+                            prContainer.style.opacity = 0;
                             setTimeout(() => {
                                 if (document.getElementById('home-pr-widget-content')) {
                                     document.getElementById('home-pr-widget-content').innerHTML = `
@@ -1301,7 +1263,7 @@
                         `;
                     }
                     return `
-                        <div onclick="switchTab('rekordy')" class="glass-panel rounded-[2rem] ${pClass} active:opacity-50 transition-opacity cursor-pointer flex flex-col justify-between h-full">
+                        <div onclick="switchTab('rekordy')" class="glass-panel rounded-[2rem] p-5 active:opacity-50 transition-opacity cursor-pointer flex flex-col justify-between h-full">
                             <div class="flex items-center space-x-2 text-iosAmber mb-2">
                                 <i class="ph-bold ph-medal text-lg"></i>
                                 <span class="text-[10px] font-black uppercase tracking-widest">Rekordy</span>
@@ -1375,7 +1337,6 @@
             `;
         }
 
-        /* ----- Profil (Biometrics & Photos) ----- */
         function getMetricHistory(metricId) {
             const history = [];
             for (const date in state.biometrics) {
@@ -1720,7 +1681,6 @@
             }
         };
 
-        /* ----- Trénink (Plány a Aktivní) ----- */
         function getLastPerformedDate(dayId) {
             const dates = Object.keys(state.history).sort().reverse();
             for (const date of dates) {
@@ -1743,6 +1703,53 @@
             window.activeWorkoutCollapsed[ex] = !window.activeWorkoutCollapsed[ex];
             renderView();
         };
+
+        function startWorkoutTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                const timerEl = document.getElementById('workout-timer');
+                if (timerEl && state.activeWorkout) {
+                    const elapsed = Math.floor((Date.now() - state.activeWorkout.startTime) / 1000);
+                    const minutes = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                    const seconds = String(elapsed % 60).padStart(2, '0');
+                    if (timerEl) {
+                        timerEl.textContent = `${minutes}:${seconds}`;
+                    }
+                } else {
+                    clearInterval(timerInterval);
+                }
+            }, 1000);
+        }
+
+        function selectWorkoutDay(dayId) {
+            const day = state.workoutDays.find(d => d.id === dayId);
+            if (!day) return;
+            
+            const targetDate = window.pendingRetroDate || getToday();
+            window.pendingRetroDate = null; 
+            window.activeWorkoutCollapsed = {}; 
+
+            state.activeWorkout = {
+                dayId: dayId,
+                name: day.name,
+                color: day.color || 'cyan',
+                startTime: Date.now(),
+                targetDate: targetDate, 
+                logs: {},
+                notes: {} 
+            };
+
+            day.exercises.forEach(exObj => {
+                const name = exObj.name;
+                const setsCount = exObj.targetSets || 4;
+                state.activeWorkout.logs[name] = Array.from({ length: setsCount }, () => ({ weight: '', reps: '' }));
+                window.activeWorkoutCollapsed[name] = true;
+            });
+
+            saveState();
+            startWorkoutTimer();
+            renderView();
+        }
 
         function renderTreninkView(container) {
             if (state.activeWorkout) {
@@ -1769,9 +1776,9 @@
                 const isExpanded = expandedDayId === day.id;
                 const colTheme = COLOR_THEMES[day.color] || COLOR_THEMES.cyan;
 
-                const categoriesHtml = day.categories.map(cat => `
-                    <span class="px-2.5 py-1 rounded-lg ${colTheme.badge} text-[10px] font-extrabold uppercase tracking-wider">${cat}</span>
-                `).join('');
+                const categoriesHtml = day.categories.map(cat => {
+                    return `<span class="px-2.5 py-1 rounded-lg ${colTheme.badge} text-[10px] font-extrabold uppercase tracking-wider">${cat}</span>`;
+                }).join('');
 
                 const lastPerformed = getLastPerformedDate(day.id);
                 const lastPerformedText = lastPerformed ? `Naposledy: ${formatDateCzech(lastPerformed)}` : "Zatím neodcvičeno";
@@ -1794,7 +1801,7 @@
                             <li class="text-sm text-slate-300 py-3 pl-4 border-l-2 border-white/10 ml-2.5 relative before:absolute before:left-[-3px] before:top-1/2 before:-translate-y-1/2 before:w-1.5 before:h-1.5 before:bg-iosTeal before:rounded-full before:shadow-[0_0_5px_rgba(6,182,212,0.8)]">
                                 <div class="flex justify-between items-center w-full">
                                     <span class="font-medium pr-2">${exObj.name}</span>
-                                    <span class="text-[11px] text-slate-500 font-bold uppercase whitespace-nowrap">${exObj.targetSets || 4} série</span>
+                                    <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider whitespace-nowrap">${exObj.targetSets || 4} série</span>
                                 </div>
                             </li>
                         `).join('');
@@ -1865,9 +1872,7 @@
             if (state.workoutDays.length === 0) {
                 daysHtml = `
                     <div class="text-center py-20 px-6 glass-panel rounded-3xl space-y-5">
-                        <div class="w-20 h-20 rounded-[1.5rem] bg-white/5 border border-white/5 flex items-center justify-center mx-auto text-slate-500">
-                            <i class="ph-bold ph-barbell text-4xl"></i>
-                        </div>
+                        <div class="ph-bold ph-barbell text-4xl text-slate-500 mb-2"></div>
                         <h3 class="text-xl font-bold text-white">Žádné tréninkové dny</h3>
                         <p class="text-sm text-slate-400 leading-relaxed max-w-xs mx-auto">Vytvořte si svůj první tréninkový den s přesně strukturovanými cviky a partiemi.</p>
                         <button onclick="openWorkoutDayEditor(null)" class="w-full py-4 rounded-2xl bg-iosTeal text-black font-extrabold text-base active:opacity-50 transition-opacity shadow-lg shadow-iosTeal/20 mt-2">
@@ -1896,92 +1901,6 @@
             `;
         }
 
-        function getPreviousPerformance(exerciseName) {
-            const sortedDates = Object.keys(state.history).sort().reverse();
-            for (const date of sortedDates) {
-                for (const dayId in state.history[date]) {
-                    if (state.history[date][dayId][exerciseName]) {
-                        const sets = state.history[date][dayId][exerciseName];
-                        const bestSet = sets.reduce((max, set) => set.weight > max.weight ? set : max, { weight: 0, reps: 0 });
-                        return `${bestSet.weight} kg × ${bestSet.reps}`;
-                    }
-                }
-            }
-            return '—';
-        }
-
-        function selectWorkoutDay(dayId) {
-            const day = state.workoutDays.find(d => d.id === dayId);
-            if (!day) return;
-            
-            const targetDate = window.pendingRetroDate || getToday();
-            window.pendingRetroDate = null; 
-            window.activeWorkoutCollapsed = {}; 
-
-            state.activeWorkout = {
-                dayId: dayId,
-                name: day.name,
-                color: day.color || 'cyan',
-                startTime: Date.now(),
-                targetDate: targetDate, 
-                logs: {},
-                notes: {} 
-            };
-
-            day.exercises.forEach(exObj => {
-                const name = exObj.name;
-                const setsCount = exObj.targetSets || 4;
-                state.activeWorkout.logs[name] = Array.from({ length: setsCount }, () => ({ weight: '', reps: '' }));
-            });
-
-            saveState();
-            startWorkoutTimer();
-            renderView();
-        }
-
-        function startWorkoutTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                const timerEl = document.getElementById('workout-timer');
-                if (timerEl && state.activeWorkout) {
-                    const elapsed = Math.floor((Date.now() - state.activeWorkout.startTime) / 1000);
-                    const minutes = String(Math.floor(elapsed / 60)).padStart(2, '0');
-                    const seconds = String(elapsed % 60).padStart(2, '0');
-                    timerEl.textContent = `${minutes}:${seconds}`;
-                } else {
-                    clearInterval(timerInterval);
-                }
-            }, 1000);
-        }
-
-        window.openExerciseNoteRollout = (ex) => {
-            const currentNote = state.activeWorkout.notes[ex] || '';
-            const html = `
-                <div class="space-y-6 text-center">
-                    <div>
-                        <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest">Poznámka ke cviku</span>
-                        <h3 class="text-2xl font-extrabold text-white mt-1">${ex}</h3>
-                    </div>
-                    <textarea id="exercise-note-input" class="w-full h-32 p-5 rounded-[1.5rem] bg-white/5 border border-white/10 text-white font-medium focus:outline-none focus:border-iosTeal resize-none shadow-inner" placeholder="Sem si napiš poznámku (např. jak ti to šlo, bolavé rameno, nastavení stroje na 5...)">${currentNote}</textarea>
-                    <button onclick="saveExerciseNote('${ex}')" class="w-full py-5 rounded-[1.5rem] bg-iosTeal text-black font-extrabold text-lg active:opacity-50 transition-opacity shadow-lg shadow-iosTeal/20">Uložit poznámku</button>
-                </div>
-            `;
-            openRollout(html);
-        };
-
-        window.saveExerciseNote = (ex) => {
-            const val = document.getElementById('exercise-note-input').value.trim();
-            if (val) {
-                state.activeWorkout.notes[ex] = val;
-            } else {
-                delete state.activeWorkout.notes[ex];
-            }
-            saveState();
-            closeRollout();
-            showToast("Poznámka uložena");
-            renderView();
-        };
-
         function renderActiveWorkout(container) {
             const session = state.activeWorkout;
             const colTheme = COLOR_THEMES[session.color] || COLOR_THEMES.cyan;
@@ -1999,11 +1918,18 @@
                 catIndex++;
                 const catIdSafe = `active-cat-${catIndex}`; 
                 
+                const allCatCompleted = groupedExercises[cat].every(ex => {
+                    const sets = session.logs[ex];
+                    return sets.length > 0 && sets.every(s => s.weight !== '' && s.reps !== '');
+                });
+                
                 const exercisesHtml = groupedExercises[cat].map(ex => {
                     const sets = session.logs[ex];
                     const previousPerf = getPreviousPerformance(ex);
                     const noteAdded = !!session.notes[ex];
                     const isExCollapsed = !!window.activeWorkoutCollapsed[ex];
+
+                    const allCompleted = sets.length > 0 && sets.every(s => s.weight !== '' && s.reps !== '');
 
                     const setsRows = sets.map((set, sIdx) => {
                         const isCompleted = set.weight !== '' && set.reps !== '';
@@ -2046,22 +1972,28 @@
                         `;
                     }).join('');
 
+                    const cardClasses = allCompleted 
+                        ? 'bg-iosGreen/10 border-iosGreen/30 shadow-[inset_0_0_20px_rgba(16,185,129,0.1)]' 
+                        : 'glass-panel border-white/5';
+                        
+                    const titleColor = allCompleted ? 'text-iosGreen' : 'text-white';
+
                     return `
-                        <div class="glass-panel rounded-[2rem] p-5 space-y-6 shadow-xl border border-white/5 relative overflow-hidden mt-4">
+                        <div class="${cardClasses} rounded-[2rem] p-5 space-y-6 shadow-xl border relative overflow-hidden mt-4 transition-colors duration-500">
                             <div class="flex justify-between items-start">
                                 <div class="pr-2 flex-1 cursor-pointer active:opacity-50 transition-opacity" onclick="toggleActiveExCollapse('${ex}')">
                                     <div class="flex items-center space-x-2">
-                                        <h4 class="font-black text-xl text-white tracking-tight leading-tight">${ex}</h4>
+                                        <h4 class="font-black text-xl ${titleColor} tracking-tight leading-tight transition-colors">${ex}</h4>
                                         ${noteAdded ? `<i class="ph-bold ph-file-text text-lg text-iosPurple"></i>` : ''}
-                                        <i class="ph-bold ${isExCollapsed ? 'ph-caret-down' : 'ph-caret-up'} text-xl text-slate-500"></i>
+                                        <i class="ph-bold ${isExCollapsed ? 'ph-caret-down' : 'ph-caret-up'} text-xl text-slate-500 transition-transform"></i>
                                     </div>
                                     <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider block mt-2">Historické maximum: ${previousPerf}</span>
                                 </div>
                                 <div class="flex space-x-2 flex-shrink-0" onclick="event.stopPropagation()">
-                                    <button onclick="openExerciseNoteRollout('${ex}')" class="px-4 py-3 rounded-xl ${noteAdded ? 'bg-iosPurple/15 border-iosPurple/30 text-iosPurple' : 'bg-white/5 border-white/10 text-slate-400'} text-[12px] font-extrabold flex items-center justify-center active:opacity-50 transition-opacity">
+                                    <button onclick="openExerciseNoteRollout('${ex}')" class="px-4 py-3 rounded-xl ${noteAdded ? 'bg-iosPurple/15 border-iosPurple/30 text-iosPurple' : 'bg-white/5 border-white/10 text-slate-400'} text-[12px] font-extrabold flex items-center justify-center active:scale-95 transition-all">
                                         <i class="ph-bold ph-pen-nib text-xl"></i>
                                     </button>
-                                    <button onclick="addSetToActiveWorkout('${ex}')" class="px-5 py-3 rounded-xl bg-iosTeal/15 border border-iosTeal/20 text-iosTeal text-[12px] font-extrabold flex items-center space-x-2 active:opacity-50 transition-opacity">
+                                    <button onclick="addSetToActiveWorkout('${ex}')" class="px-5 py-3 rounded-xl bg-iosTeal/15 border border-iosTeal/20 text-iosTeal text-[12px] font-extrabold flex items-center space-x-2 active:scale-95 transition-all">
                                         <i class="ph-bold ph-plus text-xl"></i>
                                         <span class="hidden sm:inline">SÉRIE</span>
                                     </button>
@@ -2084,16 +2016,27 @@
                     `;
                 }).join('');
 
+                const catHeaderClasses = allCatCompleted
+                    ? 'bg-iosGreen/10 border-iosGreen/30 shadow-[inset_0_0_20px_rgba(16,185,129,0.15)] text-iosGreen'
+                    : 'bg-white/5 border-white/10 text-white';
+                
+                const catHeaderTextClass = allCatCompleted ? 'text-iosGreen' : 'text-white';
+                const catChevronColor = allCatCompleted ? 'text-iosGreen' : 'text-slate-400';
+                const catCheckmark = allCatCompleted ? '<i class="ph-fill ph-check-circle text-xl text-iosGreen mr-1 shrink-0"></i>' : '';
+
                 return `
                     <div class="mb-6 animate-fade-in">
-                        <div class="flex justify-between items-center bg-white/5 px-6 py-5 rounded-[1.5rem] cursor-pointer active:opacity-50 transition-opacity border border-white/10 shadow-sm" onclick="document.getElementById('${catIdSafe}').classList.toggle('hidden'); this.querySelector('.chevron-icon').classList.toggle('rotate-180')">
+                        <div class="flex justify-between items-center px-6 py-5 rounded-[1.5rem] cursor-pointer active:opacity-50 transition-all border shadow-sm ${catHeaderClasses}" onclick="document.getElementById('${catIdSafe}').classList.toggle('hidden'); this.querySelector('.chevron-icon').classList.toggle('rotate-180')">
                             <div class="flex items-center space-x-4">
-                                ${getMuscleSvg(cat, colTheme.marker)}
-                                <span class="font-black text-white uppercase tracking-widest text-base">${cat}</span>
+                                ${getMuscleSvg(cat, allCatCompleted ? '#10B981' : colTheme.marker)}
+                                <div class="flex items-center">
+                                    ${catCheckmark}
+                                    <span class="font-black uppercase tracking-widest text-base ${catHeaderTextClass}">${cat}</span>
+                                </div>
                             </div>
                             <div class="flex items-center space-x-2">
-                                <span class="text-[11px] text-slate-400 font-bold uppercase tracking-widest">Sbalit</span>
-                                <i class="ph-bold ph-caret-up text-xl text-slate-400 transition-transform chevron-icon"></i>
+                                <span class="text-[11px] font-bold uppercase tracking-widest ${allCatCompleted ? 'text-iosGreen/80' : 'text-slate-400'}">Sbalit</span>
+                                <i class="ph-bold ph-caret-up text-xl transition-transform chevron-icon ${catChevronColor}"></i>
                             </div>
                         </div>
                         <div id="${catIdSafe}" class="space-y-6 mt-6">
@@ -2110,39 +2053,39 @@
             const isRetro = session.targetDate && session.targetDate !== getToday();
             const retroLabel = isRetro ? ` (${formatDateCzech(session.targetDate)})` : '';
 
-            container.innerHTML = `
-                <div class="space-y-8">
-                    <div class="glass-panel rounded-[2rem] p-6 border-2 ${colTheme.border} bg-gradient-to-tr from-iosDark via-iosCard to-transparent flex items-center justify-between shadow-lg">
-                        <div>
-                            <div class="flex items-center space-x-2">
-                                <span class="w-2.5 h-2.5 rounded-full animate-ping" style="background-color: ${colTheme.marker}"></span>
-                                <span class="text-[10px] uppercase font-black tracking-widest" style="color: ${colTheme.marker}">AKTIVNÍ TRÉNINK${retroLabel}</span>
-                            </div>
-                            <h2 class="text-2xl font-black text-white tracking-tight mt-2 leading-none">${session.name}</h2>
+            const stickyHeader = `
+                <div class="sticky top-2 z-40 mb-6 mx-auto w-full max-w-md">
+                    <div class="flex items-center justify-between px-3 py-3 rounded-full border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.8)]" style="background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);">
+                        <button onclick="cancelActiveWorkoutConfirm()" class="w-12 h-12 rounded-full bg-iosRed/15 text-iosRed border border-iosRed/20 hover:bg-iosRed/30 flex items-center justify-center active:scale-90 transition-all shrink-0">
+                            <i class="ph-bold ph-x text-xl"></i>
+                        </button>
+                        
+                        <div class="flex flex-col items-center flex-1 px-2 overflow-hidden">
+                            <span class="text-[10px] uppercase font-black tracking-widest truncate w-full text-center flex items-center justify-center gap-1.5" style="color: ${colTheme.marker}">
+                                <span class="w-2.5 h-2.5 rounded-full animate-ping flex-shrink-0" style="background-color: ${colTheme.marker}"></span>
+                                <span class="truncate">${session.name}${retroLabel}</span>
+                            </span>
+                            <span id="workout-timer" class="text-2xl font-mono font-black text-white tracking-tight leading-none mt-1">${minutes}:${seconds}</span>
                         </div>
-                        <div class="text-right flex flex-col items-end">
-                            <div id="workout-timer" class="text-3xl font-mono font-black text-white tracking-tight leading-none">${minutes}:${seconds}</div>
-                        </div>
+                        
+                        <button onclick="finishActiveWorkoutConfirm()" class="w-12 h-12 rounded-full bg-iosGreen text-black flex items-center justify-center active:scale-90 transition-transform shrink-0 shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+                            <i class="ph-bold ph-check text-2xl"></i>
+                        </button>
                     </div>
+                </div>
+            `;
+
+            container.innerHTML = `
+                <div class="space-y-2 relative">
+                    ${stickyHeader}
 
                     <div>
                         ${categoriesHtml}
                     </div>
 
-                    <div class="pt-4 pb-12 space-y-3 px-1">
-                        <button onclick="finishActiveWorkoutConfirm()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-iosTeal to-iosPurple text-black font-black text-base active:opacity-75 transition-opacity flex items-center justify-center space-x-2.5 shadow-[0_0_25px_rgba(6,182,212,0.25)]">
-                            <i class="ph-fill ph-check-circle text-2xl"></i>
-                            <span>Dokončit trénink</span>
-                        </button>
-                        <button onclick="cancelActiveWorkoutConfirm()" class="w-full py-3.5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold text-sm active:opacity-50 transition-opacity flex items-center justify-center space-x-2">
-                            <i class="ph-fill ph-x-circle text-xl"></i>
-                            <span>Zrušit trénink</span>
-                        </button>
-                    </div>
+                    <div class="pb-16"></div>
                 </div>
             `;
-            
-            startWorkoutTimer();
         }
 
         function openSetRolloutValue(exercise, setIdx, metricType) {
@@ -2156,7 +2099,7 @@
             if (currentVal === null) {
                 if (isWeight) {
                     const historyAutoWeight = getLastWeightForExercise(exercise);
-                    currentVal = historyAutoWeight !== null ? historyAutoWeight : 60;
+                    currentVal = historyAutoWeight !== null ? historyAutoWeight : 10; // UPDATED from 60 to 10
                 } else {
                     currentVal = 10;
                 }
@@ -2273,6 +2216,44 @@
                 }
             );
         }
+
+        window.openExerciseNoteRollout = (exercise) => {
+            const currentNote = state.activeWorkout.notes[exercise] || "";
+            const html = `
+                <div class="space-y-5 text-center">
+                    <div>
+                        <div class="px-4 py-1.5 rounded-full bg-iosPurple/15 border border-iosPurple/30 flex items-center space-x-2 mb-3 mx-auto w-fit">
+                            <i class="ph-bold ph-note-pencil text-iosPurple text-sm"></i>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-iosPurple">Poznámka ke cviku</span>
+                        </div>
+                        <h3 class="text-xl font-black text-white tracking-tight leading-tight">${exercise}</h3>
+                    </div>
+
+                    <div class="glass-panel rounded-[2rem] p-5">
+                        <textarea id="ex-note-textarea" rows="4" placeholder="Např. nastavení stroje, pocity, rezerva..." class="w-full p-4 rounded-2xl bg-black/40 border border-white/10 text-white text-sm focus:outline-none focus:border-iosPurple transition-colors leading-relaxed">${currentNote}</textarea>
+                    </div>
+
+                    <button onclick="saveExerciseNote('${exercise}')" class="w-full py-4 rounded-3xl bg-iosPurple text-white font-extrabold text-base active:opacity-70 transition-opacity shadow-[0_0_20px_rgba(139,92,246,0.3)]">Uložit poznámku</button>
+                </div>
+            `;
+            openRollout(html);
+        };
+
+        window.saveExerciseNote = (exercise) => {
+            const textarea = document.getElementById('ex-note-textarea');
+            if (textarea) {
+                const note = textarea.value.trim();
+                if (note) {
+                    state.activeWorkout.notes[exercise] = note;
+                } else {
+                    delete state.activeWorkout.notes[exercise];
+                }
+                saveState();
+                closeRollout();
+                renderView();
+                showToast("Poznámka uložena");
+            }
+        };
 
         function finishActiveWorkoutConfirm() {
             let hasValidSet = false;
@@ -2444,7 +2425,6 @@
             showToast("Trénink úspěšně uložen!");
         };
 
-        /* ----- Editor tréninku ----- */
         function openWorkoutDayEditor(dayId = null) {
             state.currentTab = 'editor';
             saveState();
@@ -2542,9 +2522,9 @@
                         <div class="flex justify-between items-center">
                             <span class="text-base font-bold text-white flex-1 pr-2">${idx + 1}. ${exObj.name}</span>
                             <div class="flex space-x-2">
-                                <button onclick="reorderExerciseInEditor(${idx}, -1)" class="w-12 h-12 rounded-2xl bg-white/5 text-slate-300 flex items-center justify-center active:opacity-50 transition-opacity"><i class="ph-bold ph-caret-up text-xl"></i></button>
-                                <button onclick="reorderExerciseInEditor(${idx}, 1)" class="w-12 h-12 rounded-2xl bg-white/5 text-slate-300 flex items-center justify-center active:opacity-50 transition-opacity"><i class="ph-bold ph-caret-down text-xl"></i></button>
-                                <button onclick="toggleExerciseInEditor('${exObj.name}', false)" class="w-12 h-12 rounded-2xl bg-iosRed/10 text-iosRed flex items-center justify-center active:opacity-50 transition-opacity ml-1"><i class="ph-bold ph-x text-xl"></i></button>
+                                <button onclick="reorderExerciseInEditor(${idx}, -1)" class="ph-bold ph-caret-up text-xl w-12 h-12 rounded-2xl bg-white/5 text-slate-300 flex items-center justify-center active:scale-95 transition-transform shrink-0"></button>
+                                <button onclick="reorderExerciseInEditor(${idx}, 1)" class="ph-bold ph-caret-down text-xl w-12 h-12 rounded-2xl bg-white/5 text-slate-300 flex items-center justify-center active:scale-95 transition-transform shrink-0"></button>
+                                <button onclick="toggleExerciseInEditor('${exObj.name}', false)" class="ph-bold ph-x text-xl w-12 h-12 rounded-2xl bg-iosRed/10 text-iosRed flex items-center justify-center active:scale-95 transition-transform shrink-0 ml-1"></button>
                             </div>
                         </div>
                         
@@ -2578,11 +2558,14 @@
             }).join('');
 
             container.innerHTML = `
-                <div class="space-y-6 pb-4">
-                    <div class="glass-panel rounded-3xl p-5 flex justify-between items-center z-20 shadow-xl mb-2 relative">
-                        <button onclick="exitEditorWithoutSaving()" class="px-5 py-3.5 rounded-2xl bg-white/5 border border-white/5 text-sm text-slate-300 font-bold active:opacity-50 transition-opacity">Zrušit</button>
-                        <h2 class="text-xl font-black text-white">Stavitel</h2>
-                        <button onclick="saveWorkoutDayFromEditor()" class="px-6 py-3.5 rounded-2xl bg-iosTeal text-black text-sm font-extrabold active:opacity-50 transition-opacity shadow-lg shadow-iosTeal/20">Uložit</button>
+                <div class="space-y-6 pb-4 relative">
+                    <!-- FLOATING EDITOR HEADER (STICKY BOX) -->
+                    <div class="sticky top-2 z-40 mb-6 mx-auto w-full">
+                        <div class="flex items-center justify-between px-4 py-3.5 rounded-[2rem] border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.85)]" style="background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);">
+                            <button onclick="exitEditorWithoutSaving()" class="px-5 py-3 rounded-full bg-white/5 border border-white/5 text-xs text-slate-300 font-extrabold active:scale-95 transition-all">Zrušit</button>
+                            <h2 class="text-base font-black text-white tracking-widest uppercase">Editor</h2>
+                            <button onclick="saveWorkoutDayFromEditor()" class="px-6 py-3 rounded-full bg-iosTeal text-black text-xs font-black active:scale-95 transition-all shadow-lg shadow-iosTeal/25">Uložit</button>
+                        </div>
                     </div>
 
                     <div class="glass-panel rounded-3xl p-6 space-y-6">
@@ -2713,11 +2696,9 @@
             );
         };
 
-        /* ----- Kalendář a Historie ----- */
         let calYear = new Date().getFullYear();
         let calMonth = new Date().getMonth();
 
-        // Start zpětného zápisu přes kalendář
         window.startRetroactiveWorkout = (dateStr) => {
             window.pendingRetroDate = dateStr;
             closeRollout();
@@ -2732,7 +2713,31 @@
             const offset = firstDayIndex === 0 ? 6 : firstDayIndex - 1; 
             const monthNames = ["Leden", "Únor", "Březen", "Duben", "Květen", "Červen", "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"];
 
-            let calendarGridHtml = Array(offset).fill(`<div class="h-14"></div>`).join('');
+            // Premium scanning of stats for this specific month
+            let monthWorkoutsCount = 0;
+            let monthBiometricsCount = 0;
+            let monthPhotosCount = 0;
+            const currentMonthPrefix = `${calYear}-${String(calMonth + 1).padStart(2, '0')}`;
+            
+            for (const d in state.history) {
+                if (d.startsWith(currentMonthPrefix)) {
+                    monthWorkoutsCount += Object.keys(state.history[d]).length;
+                }
+            }
+            for (const d in state.biometrics) {
+                if (d.startsWith(currentMonthPrefix) && Object.keys(state.biometrics[d]).length > 0) {
+                    monthBiometricsCount++;
+                }
+            }
+            if (state.photoDates) {
+                for (const d in state.photoDates) {
+                    if (d.startsWith(currentMonthPrefix)) {
+                        monthPhotosCount++;
+                    }
+                }
+            }
+
+            let calendarGridHtml = Array(offset).fill(`<div class="h-[52px] opacity-20"></div>`).join('');
 
             for (let dNum = 1; dNum <= daysInMonth; dNum++) {
                 const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(dNum).padStart(2, '0')}`;
@@ -2741,58 +2746,152 @@
                 const hasPhoto = state.photoDates && state.photoDates[dateStr];
                 const isToday = dateStr === getToday();
 
-                let indicatorHtml = '';
-                if (hasTrain || hasBio || hasPhoto) {
-                    let dots = [];
-                    if (hasTrain) {
-                        const performedDayIds = Object.keys(state.history[dateStr]);
-                        performedDayIds.forEach(dayId => {
-                            const matchedDay = state.workoutDays.find(wd => wd.id === dayId);
-                            const dayColor = matchedDay ? matchedDay.color : 'cyan';
-                            const matchedTheme = COLOR_THEMES[dayColor] || COLOR_THEMES.cyan;
-                            dots.push(`<span class="w-2 h-2 rounded-full" style="background-color: ${matchedTheme.marker}; box-shadow: 0 0 6px ${matchedTheme.marker}"></span>`);
-                        });
-                        if (dots.length === 0) dots.push(`<span class="w-2 h-2 rounded-full bg-iosTeal"></span>`);
+                let dayCellBg = 'bg-white/3 border-white/5 hover:bg-white/10';
+                let textClassDayNum = 'text-slate-300';
+                let borderHighlight = 'border';
+                let glowEffect = '';
+
+                // Premium visual coloring depending on recorded workout's color scheme
+                if (hasTrain) {
+                    const performedDayIds = Object.keys(state.history[dateStr]);
+                    let primaryColor = 'cyan';
+                    if (performedDayIds.length > 0) {
+                        const matchedDay = state.workoutDays.find(wd => wd.id === performedDayIds[0]);
+                        if (matchedDay) primaryColor = matchedDay.color;
                     }
-                    if (hasBio) dots.push(`<span class="w-2 h-2 rounded-full bg-iosPurple" style="box-shadow: 0 0 6px #8B5CF6"></span>`);
-                    if (hasPhoto) dots.push(`<span class="w-2 h-2 rounded-full bg-rose-500" style="box-shadow: 0 0 6px #F43F5E"></span>`);
-                    indicatorHtml = `<div class="flex justify-center space-x-1.5 mt-1.5">${dots.slice(0, 3).join('')}</div>`;
+                    const colorTheme = COLOR_THEMES[primaryColor] || COLOR_THEMES.cyan;
+                    dayCellBg = `${colorTheme.bg} border-${primaryColor}-500/20`;
+                    textClassDayNum = `${colorTheme.text} font-black`;
                 }
 
+                if (isToday) {
+                    dayCellBg = 'bg-gradient-to-br from-iosTeal/20 to-iosPurple/20 border-iosTeal/60';
+                    textClassDayNum = 'text-white font-black';
+                    glowEffect = 'shadow-[0_0_15px_rgba(6,182,212,0.25)]';
+                }
+
+                let dots = [];
+                if (hasTrain) {
+                    const performedDayIds = Object.keys(state.history[dateStr]);
+                    performedDayIds.forEach(dayId => {
+                        const matchedDay = state.workoutDays.find(wd => wd.id === dayId);
+                        const dayColor = matchedDay ? matchedDay.color : 'cyan';
+                        const matchedTheme = COLOR_THEMES[dayColor] || COLOR_THEMES.cyan;
+                        dots.push(`<span class="w-1.5 h-1.5 rounded-full" style="background-color: ${matchedTheme.marker}; box-shadow: 0 0 5px ${matchedTheme.marker}"></span>`);
+                    });
+                    if (dots.length === 0) dots.push(`<span class="w-1.5 h-1.5 rounded-full bg-iosTeal"></span>`);
+                }
+                if (hasBio) dots.push(`<span class="w-1.5 h-1.5 rounded-full bg-iosPurple" style="box-shadow: 0 0 5px #8B5CF6"></span>`);
+                if (hasPhoto) dots.push(`<span class="w-1.5 h-1.5 rounded-full bg-rose-500" style="box-shadow: 0 0 5px #F43F5E"></span>`);
+
+                const indicatorsHtml = dots.length > 0 
+                    ? `<div class="flex justify-center space-x-1 mt-1">${dots.slice(0, 3).join('')}</div>` 
+                    : `<div class="h-1.5"></div>`;
+
                 calendarGridHtml += `
-                    <button onclick="openDayLogsHistoryRollout('${dateStr}')" class="h-14 flex flex-col items-center justify-center rounded-2xl transition-all ${isToday ? 'bg-white/10 border border-iosTeal/30 shadow-inner' : 'active:opacity-50'}">
-                        <span class="text-base font-bold ${isToday ? 'text-iosTeal' : 'text-slate-200'}">${dNum}</span>
-                        <div class="h-2">${indicatorHtml}</div>
+                    <button onclick="openDayLogsHistoryRollout('${dateStr}')" class="h-[52px] flex flex-col items-center justify-center rounded-[1.2rem] transition-all relative ${dayCellBg} ${borderHighlight} ${glowEffect}">
+                        <span class="text-sm font-bold ${textClassDayNum}">${dNum}</span>
+                        ${indicatorsHtml}
                     </button>
+                `;
+            }
+
+            // Build list of training logs within the month for premium timeline
+            const activityList = [];
+            const sortedHistoryDates = Object.keys(state.history).sort((a,b) => b.localeCompare(a));
+            sortedHistoryDates.forEach(date => {
+                if (date.startsWith(currentMonthPrefix)) {
+                    for (const dId in state.history[date]) {
+                        const matchedDay = state.workoutDays.find(wd => wd.id === dId) || { name: 'Vlastní trénink', color: 'cyan' };
+                        const colTheme = COLOR_THEMES[matchedDay.color] || COLOR_THEMES.cyan;
+                        activityList.push({
+                            date,
+                            name: matchedDay.name,
+                            color: matchedDay.color,
+                            marker: colTheme.marker,
+                            text: colTheme.text,
+                            bg: colTheme.bg,
+                            dayId: dId
+                        });
+                    }
+                }
+            });
+
+            let timelineHtml = activityList.map(act => `
+                <div onclick="openDayLogsHistoryRollout('${act.date}')" class="flex items-center justify-between p-4 rounded-2xl bg-white/3 border border-white/5 active:bg-white/8 transition-all cursor-pointer">
+                    <div class="flex items-center space-x-3.5 min-w-0">
+                        <span class="w-3 h-3 rounded-full shrink-0" style="background-color: ${act.marker}; box-shadow: 0 0 8px ${act.marker}"></span>
+                        <div class="min-w-0">
+                            <span class="font-bold text-sm text-white block truncate leading-tight">${act.name}</span>
+                            <span class="text-[10px] text-slate-500 font-bold mt-1 block">${formatDateCzech(act.date)}</span>
+                        </div>
+                    </div>
+                    <i class="ph-bold ph-caret-right text-lg text-slate-500"></i>
+                </div>
+            `).join('');
+
+            if (activityList.length === 0) {
+                timelineHtml = `
+                    <div class="text-center py-4 text-sm text-slate-500 italic">
+                        Žádné tréninky v tomto měsíci
+                    </div>
                 `;
             }
 
             container.innerHTML = `
                 <div class="space-y-6">
-                    <div class="glass-panel rounded-3xl p-6">
+                    <!-- Premium Month Calendar Card -->
+                    <div class="glass-panel rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden border border-white/10">
+                        <div class="absolute -right-8 -top-8 w-40 h-40 bg-iosTeal/5 rounded-full blur-[50px] pointer-events-none"></div>
+                        <div class="absolute -left-8 -bottom-8 w-40 h-40 bg-iosPurple/5 rounded-full blur-[50px] pointer-events-none"></div>
+
+                        <!-- Month Shift Header -->
                         <div class="flex justify-between items-center mb-6">
-                            <button onclick="shiftCalendarMonth(-1)" class="w-12 h-12 rounded-2xl bg-white/5 text-iosTeal flex items-center justify-center active:opacity-50 transition-opacity"><i class="ph-bold ph-caret-left text-xl"></i></button>
-                            <h3 class="text-xl font-black text-white tracking-wide">${monthNames[calMonth]} ${calYear}</h3>
-                            <button onclick="shiftCalendarMonth(1)" class="w-12 h-12 rounded-2xl bg-white/5 text-iosTeal flex items-center justify-center active:opacity-50 transition-opacity"><i class="ph-bold ph-caret-right text-xl"></i></button>
+                            <button onclick="shiftCalendarMonth(-1)" class="w-11 h-11 rounded-2xl bg-white/5 text-iosTeal border border-white/5 flex items-center justify-center active:scale-95 transition-transform"><i class="ph-bold ph-caret-left text-lg"></i></button>
+                            <h3 class="text-xl font-black text-white tracking-tight text-center select-none">${monthNames[calMonth]} ${calYear}</h3>
+                            <button onclick="shiftCalendarMonth(1)" class="w-11 h-11 rounded-2xl bg-iosTeal text-black flex items-center justify-center active:scale-95 transition-transform shadow-lg shadow-iosTeal/15"><i class="ph-bold ph-caret-right text-lg"></i></button>
                         </div>
-                        <div class="grid grid-cols-7 text-center text-[12px] font-black text-slate-500 uppercase tracking-widest mb-4">
+
+                        <!-- Weekdays -->
+                        <div class="grid grid-cols-7 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 font-mono">
                             <span>Po</span><span>Út</span><span>St</span><span>Čt</span><span>Pá</span><span>So</span><span>Ne</span>
                         </div>
-                        <div class="grid grid-cols-7 gap-2">${calendarGridHtml}</div>
+
+                        <!-- Days Grid -->
+                        <div class="grid grid-cols-7 gap-1.5">${calendarGridHtml}</div>
                     </div>
 
-                    <div class="flex flex-wrap justify-center items-center gap-x-6 gap-y-3 text-[12px] font-bold text-slate-400 uppercase tracking-wider mt-5">
-                        <div class="flex items-center space-x-2">
-                            <span class="w-3.5 h-3.5 rounded-full bg-iosTeal shadow-lg shadow-iosTeal/30"></span>
-                            <span>Trénink</span>
+                    <!-- Premium Stats Summary Bar -->
+                    <div class="glass-panel rounded-[2rem] p-5 shadow-xl border border-white/5 space-y-4">
+                        <div class="flex items-center space-x-2.5 text-iosTeal mb-1 px-1">
+                            <i class="ph-bold ph-chart-bar-up text-lg"></i>
+                            <span class="text-[11px] font-black uppercase tracking-widest">Aktivita tento měsíc</span>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <span class="w-3.5 h-3.5 rounded-full bg-iosPurple shadow-lg shadow-iosPurple/30"></span>
-                            <span>Měření</span>
+
+                        <div class="grid grid-cols-3 gap-3.5 pt-1">
+                            <div class="flex flex-col text-left">
+                                <span class="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Tréninky</span>
+                                <span class="text-2xl font-black text-white mt-1 flex items-baseline gap-1">${monthWorkoutsCount} <span class="text-[10px] text-slate-500 font-bold uppercase">x</span></span>
+                            </div>
+                            <div class="flex flex-col text-left border-l border-white/5 pl-3">
+                                <span class="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Měření</span>
+                                <span class="text-2xl font-black text-iosPurple mt-1 flex items-baseline gap-1">${monthBiometricsCount} <span class="text-[10px] text-slate-500 font-bold uppercase">x</span></span>
+                            </div>
+                            <div class="flex flex-col text-left border-l border-white/5 pl-3">
+                                <span class="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Fotky</span>
+                                <span class="text-2xl font-black text-rose-500 mt-1 flex items-baseline gap-1">${monthPhotosCount} <span class="text-[10px] text-slate-500 font-bold uppercase">x</span></span>
+                            </div>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <span class="w-3.5 h-3.5 rounded-full bg-rose-500 shadow-lg shadow-rose-500/30"></span>
-                            <span>Fotka</span>
+                    </div>
+
+                    <!-- Monthly Activity Timeline list -->
+                    <div class="space-y-3.5">
+                        <div class="flex items-center space-x-2.5 px-2">
+                            <i class="ph-bold ph-clock-counter-clockwise text-slate-400"></i>
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Časová osa tréninků</span>
+                        </div>
+                        <div class="space-y-2.5 max-h-[280px] overflow-y-auto no-scrollbar pb-6" style="-webkit-overflow-scrolling: touch;">
+                            ${timelineHtml}
                         </div>
                     </div>
                 </div>
@@ -2940,10 +3039,237 @@
             });
         }
 
-        /* ----- Rekordy (PRs & Charts) ----- */
         let recordSearchQuery = "";
         let recordCategoryFilter = "Vše";
         let recordCollapsedCategories = {};
+
+        window.handleRecordSearch = (val) => {
+            recordSearchQuery = val;
+            window.filterAndRenderRecordList();
+        };
+
+        window.filterAndRenderRecordList = () => {
+            const listContainer = document.getElementById('record-list-container');
+            if (!listContainer) return;
+            
+            const loggedExercises = new Set();
+            for (const d in state.history) {
+                for (const dayId in state.history[d]) {
+                    for (const ex in state.history[d][dayId]) {
+                        if (ex !== '_notes') loggedExercises.add(ex);
+                    }
+                }
+            }
+            const arrEx = Array.from(loggedExercises).sort();
+            const exToCat = buildExToCatMap();
+            
+            const groupedPRs = {};
+            arrEx.forEach(ex => {
+                const cat = exToCat[ex] || "Ostatní";
+                if (recordSearchQuery && !ex.toLowerCase().includes(recordSearchQuery.toLowerCase())) return;
+                if (recordCategoryFilter !== "Vše" && cat !== recordCategoryFilter) return;
+                if (!groupedPRs[cat]) groupedPRs[cat] = [];
+                groupedPRs[cat].push(ex);
+            });
+
+            let accordionsHtml = Object.keys(groupedPRs).map(cat => {
+                const isCollapsed = recordCollapsedCategories[cat] === true;
+                
+                const itemsHtml = groupedPRs[cat].map(e => {
+                    const pb = getExerciseRecordPB(e);
+                    return `
+                        <div class="bg-white/3 border border-white/5 rounded-2xl p-4 flex justify-between items-center shadow-md hover:bg-white/5 transition-all">
+                            <div onclick="openExerciseDetailRollout('${e.replace(/'/g, "\\'")}')" class="flex items-center space-x-3.5 min-w-0 flex-1 cursor-pointer">
+                                <div class="w-10 h-10 rounded-xl bg-iosAmber/10 flex items-center justify-center shrink-0">
+                                    <i class="ph-fill ph-trophy text-iosAmber text-xl"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="font-bold text-sm text-slate-200 block truncate leading-tight">${e}</span>
+                                    <div class="flex items-center text-[10px] text-slate-500 font-bold mt-1.5 space-x-1">
+                                        <i class="ph-bold ph-calendar-blank"></i>
+                                        <span>${formatDateCzech(pb.date)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-2 shrink-0 pl-3">
+                                <div class="text-right">
+                                    <div class="inline-flex items-center gap-1.5 bg-iosTeal/10 border border-iosTeal/20 px-3 py-1.5 rounded-xl">
+                                        <span class="text-iosTeal font-black text-sm">${pb.weight}</span>
+                                        <span class="text-[10px] text-iosTeal/80 font-extrabold uppercase">kg</span>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 font-black mt-1 pl-1">
+                                        × ${pb.reps} op.
+                                    </div>
+                                </div>
+                                <button onclick="openExerciseDetailRollout('${e.replace(/'/g, "\\'")}')" class="w-10 h-10 rounded-xl bg-white/5 text-iosTeal border border-white/5 flex items-center justify-center active:scale-90 transition-transform ml-1">
+                                    <i class="ph-bold ph-chart-line-up text-xl"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="glass-panel rounded-[2rem] p-5 mb-5 border border-white/5">
+                        <div class="flex justify-between items-center cursor-pointer active:opacity-50 transition-opacity" onclick="toggleRecordCategoryCollapse('${cat}')">
+                            <div class="flex items-center space-x-4">
+                                ${getMuscleSvg(cat, '#06B6D4')}
+                                <h4 class="font-black text-base uppercase tracking-widest text-white">${cat}</h4>
+                            </div>
+                            <span class="text-sm text-slate-500 font-bold flex items-center">
+                                ${groupedPRs[cat].length} cviků
+                                <i class="ph-bold ${isCollapsed ? 'ph-caret-down' : 'ph-caret-up'} text-xl ml-2"></i>
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-1 gap-3.5 mt-5 border-t border-white/5 pt-5 ${isCollapsed ? 'hidden' : ''}">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (Object.keys(groupedPRs).length === 0) {
+                accordionsHtml = `<p class="text-center text-sm text-slate-500 py-10 italic">Žádné odpovídající rekordy nebyly nalezeny.</p>`;
+            }
+
+            listContainer.innerHTML = accordionsHtml;
+        };
+
+        window.openExerciseDetailRollout = (ex) => {
+            const pb = getExerciseRecordPB(ex);
+            
+            // Gather full historical performance logs for this exercise
+            const dates = Object.keys(state.history).sort((a, b) => b.localeCompare(a));
+            const historyRows = [];
+            
+            dates.forEach(d => {
+                for (const dId in state.history[d]) {
+                    if (state.history[d][dId][ex]) {
+                        const sets = state.history[d][dId][ex];
+                        const setsStr = sets.map((s, sIdx) => `
+                            <div class="flex items-center justify-between py-1 px-2.5 rounded-lg bg-white/5 border border-white/5 text-xs text-slate-300">
+                                <span class="font-bold text-[10px] text-slate-500 uppercase">Série ${sIdx+1}</span>
+                                <span class="font-black text-white">${s.weight} kg <span class="text-slate-400 font-normal">x</span> ${s.reps} op.</span>
+                            </div>
+                        `).join('');
+                        
+                        const workoutDayName = state.workoutDays.find(wd => wd.id === dId)?.name || 'Trénink';
+                        
+                        historyRows.push(`
+                            <div class="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2.5">
+                                <div class="flex justify-between items-center pb-2 border-b border-white/5">
+                                    <span class="text-sm font-black text-white">${formatDateCzech(d)}</span>
+                                    <span class="text-[10px] text-iosTeal font-bold uppercase tracking-wider bg-iosTeal/10 border border-iosTeal/20 px-2 py-0.5 rounded-md">${workoutDayName}</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    ${setsStr}
+                                </div>
+                            </div>
+                        `);
+                    }
+                }
+            });
+
+            const html = `
+                <div class="space-y-6 text-center">
+                    <div class="flex justify-between items-start w-full">
+                        <div class="w-10"></div>
+                        <div class="flex flex-col items-center flex-1 px-2 overflow-hidden">
+                            <span class="text-[11px] text-iosAmber uppercase font-black tracking-widest block">Analýza a Historie</span>
+                            <h3 class="text-xl font-black text-white mt-1 truncate w-full text-center">${ex}</h3>
+                        </div>
+                        <button onclick="closeRollout()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-slate-400 active:opacity-50 transition-opacity">
+                            <i class="ph-bold ph-x text-lg"></i>
+                        </button>
+                    </div>
+
+                    <!-- Stats overview inside sheet -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="glass-panel rounded-2xl p-4 text-left border border-white/5">
+                            <span class="text-[10px] text-slate-500 font-black uppercase tracking-wider block">Osobní maximum</span>
+                            <span class="text-2xl font-black text-iosAmber block mt-1">${pb.weight} <span class="text-xs text-slate-400 font-bold">kg</span></span>
+                            <span class="text-[10px] text-slate-400 font-bold block mt-0.5">pro ${pb.reps} opakování</span>
+                        </div>
+                        <div class="glass-panel rounded-2xl p-4 text-left border border-white/5">
+                            <span class="text-[10px] text-slate-500 font-black uppercase tracking-wider block">Počet tréninků</span>
+                            <span class="text-2xl font-black text-iosTeal block mt-1">${historyRows.length} <span class="text-xs text-slate-400 font-bold">zápisů</span></span>
+                            <span class="text-[10px] text-slate-400 font-bold block mt-0.5">zaznamenáno celkem</span>
+                        </div>
+                    </div>
+
+                    <!-- Sheet line chart -->
+                    <div class="glass-panel rounded-3xl p-5 shadow-inner relative overflow-hidden">
+                        <label class="block text-[10px] text-slate-500 uppercase font-black text-left tracking-widest mb-4 px-1">Graf výkonnosti (Max váha)</label>
+                        <div class="h-56 w-full relative">
+                            <canvas id="canvas-exercise-rollout-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Historic List of Entries -->
+                    <div class="text-left space-y-3">
+                        <label class="block text-[11px] text-slate-500 uppercase font-black tracking-widest pl-1">Historie zápisů</label>
+                        <div class="space-y-3 max-h-60 overflow-y-auto no-scrollbar pb-4" style="-webkit-overflow-scrolling: touch;">
+                            ${historyRows.join('') || '<p class="text-sm text-slate-500 italic text-center py-4">Nenalezena žádná historie u tohoto cviku.</p>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            openRollout(html);
+
+            // Lazy initialize line chart in modal bottom sheet
+            setTimeout(() => {
+                const ctx = document.getElementById('canvas-exercise-rollout-chart');
+                if (!ctx) return;
+
+                const datesSorted = Object.keys(state.history).sort();
+                const points = [];
+
+                datesSorted.forEach(d => {
+                    let maxW = 0;
+                    for (const dId in state.history[d]) {
+                        if (state.history[d][dId][ex]) {
+                            const m = Math.max(...state.history[d][dId][ex].map(s => s.weight));
+                            if (m > maxW) maxW = m;
+                        }
+                    }
+                    if (maxW > 0) points.push({ date: d.substring(5), val: maxW }); 
+                });
+
+                const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 180);
+                gradient.addColorStop(0, 'rgba(245, 158, 11, 0.35)');
+                gradient.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: points.map(p => p.date),
+                        datasets: [{
+                            data: points.map(p => p.val),
+                            borderColor: '#F59E0B',
+                            backgroundColor: gradient,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#000000',
+                            pointBorderColor: '#F59E0B',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            fill: true,
+                            tension: 0.35
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9, weight: 'bold' } } },
+                            y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b', font: { size: 9, weight: 'bold' } } }
+                        }
+                    }
+                });
+            }, 80);
+        };
 
         function renderRekordyView(container) {
             const loggedExercises = new Set();
@@ -2970,82 +3296,68 @@
                 return;
             }
 
+            // ADVANCED STATS COMPUTATION FOR PREMIUM DASHBOARD
+            const exToCat = buildExToCatMap();
+            const totalPRsCount = arrEx.length;
+            let maxWeightOverall = 0;
+            let maxWeightExName = '—';
+            let catStats = {};
+
+            arrEx.forEach(ex => {
+                const pb = getExerciseRecordPB(ex);
+                if (pb.weight > maxWeightOverall) {
+                    maxWeightOverall = pb.weight;
+                    maxWeightExName = ex;
+                }
+                const cat = exToCat[ex] || "Ostatní";
+                catStats[cat] = (catStats[cat] || 0) + 1;
+            });
+
+            let dominantCategoryName = '—';
+            let dominantCategoryCount = 0;
+            for (const c in catStats) {
+                if (catStats[c] > dominantCategoryCount) {
+                    dominantCategoryCount = catStats[c];
+                    dominantCategoryName = c;
+                }
+            }
+
             const categoryFilterPills = ["Vše", ...EXERCISE_CATEGORIES].map(cat => {
                 const isSelected = recordCategoryFilter === cat;
-                const activeStyle = isSelected ? 'bg-iosTeal text-black font-extrabold border-iosTeal shadow-lg shadow-iosTeal/20' : 'bg-white/5 text-slate-300 border-white/5';
+                const activeStyle = isSelected 
+                    ? 'bg-iosAmber text-black font-black border-iosAmber shadow-lg shadow-iosAmber/20' 
+                    : 'bg-white/5 text-slate-300 border-white/5 hover:bg-white/10';
+                
+                const count = Array.from(loggedExercises).filter(ex => {
+                    const c = exToCat[ex] || "Ostatní";
+                    return cat === "Vše" || c === cat;
+                }).length;
+
+                if (count === 0 && cat !== "Vše") return ''; 
+
                 return `
-                    <button onclick="setRecordCategoryFilter('${cat}')" class="px-5 py-2.5 rounded-xl border text-sm active:opacity-50 transition-opacity ${activeStyle}">
-                        ${cat}
+                    <button onclick="setRecordCategoryFilter('${cat}')" class="px-5 py-3 rounded-full border text-xs tracking-wider uppercase flex items-center space-x-1.5 active:scale-95 transition-all shrink-0 ${activeStyle}">
+                        <span>${cat}</span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[9px] font-black ${isSelected ? 'bg-black/20 text-black' : 'bg-white/10 text-slate-400'}">${count}</span>
                     </button>
                 `;
             }).join('');
 
-            const exToCat = buildExToCatMap();
-            const groupedPRs = {};
-
-            arrEx.forEach(ex => {
-                const cat = exToCat[ex] || "Ostatní";
-                if (recordSearchQuery && !ex.toLowerCase().includes(recordSearchQuery.toLowerCase())) return;
-                if (recordCategoryFilter !== "Vše" && cat !== recordCategoryFilter) return;
-                if (!groupedPRs[cat]) groupedPRs[cat] = [];
-                groupedPRs[cat].push(ex);
-            });
-
-            let accordionsHtml = Object.keys(groupedPRs).map(cat => {
-                const isCollapsed = recordCollapsedCategories[cat] === true;
-                const itemsHtml = groupedPRs[cat].map(e => {
-                    const pb = getExerciseRecordPB(e);
-                    return `
-                        <div class="flex justify-between items-center py-4 text-base border-b border-white/5 last:border-none">
-                            <span class="font-bold text-slate-300">${e}</span>
-                            <div class="text-right">
-                                <span class="text-iosTeal font-extrabold text-lg">${pb.weight} kg</span>
-                                <span class="text-slate-500 font-bold ml-1">x ${pb.reps} op.</span>
-                                <span class="block text-[11px] text-slate-600 font-bold mt-1">${formatDateCzech(pb.date)}</span>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-                return `
-                    <div class="glass-panel rounded-3xl p-6 mb-5">
-                        <div class="flex justify-between items-center cursor-pointer active:opacity-50 transition-opacity" onclick="toggleRecordCategoryCollapse('${cat}')">
-                            <div class="flex items-center space-x-4">
-                                ${getMuscleSvg(cat, '#06B6D4')}
-                                <h4 class="font-black text-base uppercase tracking-wider text-white">${cat}</h4>
-                            </div>
-                            <span class="text-sm text-slate-500 font-bold flex items-center">
-                                ${groupedPRs[cat].length} cviků
-                                <i class="ph-bold ${isCollapsed ? 'ph-caret-down' : 'ph-caret-up'} text-xl ml-2"></i>
-                            </span>
-                        </div>
-                        <div class="space-y-2 pt-4 mt-4 border-t border-white/5 ${isCollapsed ? 'hidden' : ''}">
-                            ${itemsHtml}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            if (Object.keys(groupedPRs).length === 0) {
-                accordionsHtml = `<p class="text-center text-sm text-slate-500 py-10 italic">Žádné odpovídající rekordy nebyly nalezeny.</p>`;
-            }
-
-            if (!window.currentRecordExercise && arrEx.length > 0) {
-                window.currentRecordExercise = arrEx[0];
-            }
-
             container.innerHTML = `
                 <div class="space-y-6">
-                    <div class="glass-panel rounded-3xl p-6 shadow-lg">
-                        <label class="block text-[11px] text-slate-500 uppercase font-black tracking-widest mb-3">Vyberte cvik k analýze</label>
-                        
-                        <button onclick="openExerciseSelectRollout()" id="selected-exercise-btn" class="w-full py-5 px-6 rounded-2xl bg-white/5 border border-white/10 text-white font-extrabold text-base text-left flex justify-between items-center active:opacity-50 transition-opacity">
-                            <span id="selected-exercise-name" class="truncate pr-4">${window.currentRecordExercise || 'Zvolte cvik'}</span>
-                            <i class="ph-bold ph-caret-down text-xl text-slate-400 flex-shrink-0"></i>
-                        </button>
-
-                        <div class="h-72 w-full mt-8 relative">
-                            <canvas id="canvas-record"></canvas>
+                    <!-- PREMIUM RECORD STATISTICS DASHBOARD -->
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="glass-panel rounded-2xl p-3.5 flex flex-col items-center justify-center text-center border border-white/5 relative overflow-hidden">
+                            <span class="text-[9px] text-slate-500 font-black uppercase tracking-wider">Celkem PRs</span>
+                            <span class="text-xl font-black text-white mt-1">${totalPRsCount}</span>
+                        </div>
+                        <div class="glass-panel rounded-2xl p-3.5 flex flex-col items-center justify-center text-center border border-white/5 relative overflow-hidden">
+                            <span class="text-[9px] text-slate-500 font-black uppercase tracking-wider">Max váha</span>
+                            <span class="text-xl font-black text-iosTeal mt-1 truncate w-full px-1" title="${maxWeightExName}">${maxWeightOverall} <span class="text-xs">kg</span></span>
+                        </div>
+                        <div class="glass-panel rounded-2xl p-3.5 flex flex-col items-center justify-center text-center border border-white/5 relative overflow-hidden">
+                            <span class="text-[9px] text-slate-500 font-black uppercase tracking-wider">Dom. partie</span>
+                            <span class="text-xs font-black text-iosPurple mt-1.5 truncate w-full">${dominantCategoryName}</span>
                         </div>
                     </div>
 
@@ -3066,128 +3378,19 @@
                                 <i class="ph-bold ph-medal text-[24px] text-iosTeal"></i>
                                 <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest">Osobní maxima (PRs)</h3>
                             </div>
-                            <div>
-                                ${accordionsHtml}
-                            </div>
+                            <!-- Separated container to filter list dynamically without replacing search focus -->
+                            <div id="record-list-container"></div>
                         </div>
                     </div>
                 </div>
             `;
 
-            setTimeout(() => {
-                if (window.currentRecordExercise) renderChartForExercise(window.currentRecordExercise);
-            }, 50);
+            // Initial render of filtered lists
+            window.filterAndRenderRecordList();
         }
 
-        window.openExerciseSelectRollout = () => {
-            const loggedExercises = new Set();
-            for (const d in state.history) {
-                for (const dayId in state.history[d]) {
-                    for (const ex in state.history[d][dayId]) {
-                        if (ex !== '_notes') loggedExercises.add(ex);
-                    }
-                }
-            }
-            const arrEx = Array.from(loggedExercises).sort();
-            if (arrEx.length === 0) return;
-
-            const currentSelection = window.currentRecordExercise;
-
-            const exerciseItemsHtml = arrEx.map(ex => {
-                const isSelected = ex === currentSelection;
-                return `
-                    <button onclick="selectExerciseForAnalysis('${ex}')" class="w-full text-left p-5 rounded-2xl border transition-all flex justify-between items-center ${isSelected ? 'bg-iosTeal/15 border-iosTeal text-iosTeal font-extrabold shadow-lg shadow-iosTeal/10' : 'bg-white/3 border-white/5 text-slate-300 active:opacity-50'}">
-                        <span class="text-lg">${ex}</span>
-                        ${isSelected ? '<i class="ph-bold ph-check text-xl text-iosTeal"></i>' : ''}
-                    </button>
-                `;
-            }).join('');
-
-            const html = `
-                <div class="space-y-6 relative">
-                    <div class="flex justify-between items-start w-full">
-                        <div class="w-10"></div>
-                        <div class="text-center flex flex-col items-center">
-                            <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest block">Analýza cviků</span>
-                            <h3 class="text-2xl font-extrabold text-white mt-1">Zvolte cvik</h3>
-                        </div>
-                        <button onclick="closeRollout()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-slate-400 active:opacity-50 transition-opacity">
-                            <i class="ph-bold ph-x text-lg"></i>
-                        </button>
-                    </div>
-                    <div class="space-y-3 max-h-[50vh] overflow-y-auto no-scrollbar pt-3" style="-webkit-overflow-scrolling: touch;">
-                        ${exerciseItemsHtml}
-                    </div>
-                </div>
-            `;
-            openRollout(html);
-        };
-
-        window.selectExerciseForAnalysis = (ex) => {
-            window.currentRecordExercise = ex;
-            const btnText = document.getElementById('selected-exercise-name');
-            if (btnText) btnText.textContent = ex;
-            closeRollout();
-            renderChartForExercise(ex);
-        };
-
-        window.handleRecordSearch = (val) => { recordSearchQuery = val; renderView(); };
         window.setRecordCategoryFilter = (cat) => { recordCategoryFilter = cat; renderView(); };
         window.toggleRecordCategoryCollapse = (cat) => { recordCollapsedCategories[cat] = !recordCollapsedCategories[cat]; renderView(); };
-
-        let chartInstance = null;
-        function renderChartForExercise(ex) {
-            const ctx = document.getElementById('canvas-record');
-            if (!ctx) return;
-
-            const dates = Object.keys(state.history).sort();
-            const points = [];
-
-            dates.forEach(d => {
-                let maxW = 0;
-                for (const dId in state.history[d]) {
-                    if (state.history[d][dId][ex]) {
-                        const m = Math.max(...state.history[d][dId][ex].map(s => s.weight));
-                        if (m > maxW) maxW = m;
-                    }
-                }
-                if (maxW > 0) points.push({ date: d.substring(5), val: maxW }); 
-            });
-
-            if (chartInstance) chartInstance.destroy();
-
-            const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 240);
-            gradient.addColorStop(0, 'rgba(6, 182, 212, 0.35)');
-            gradient.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
-
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: points.map(p => p.date),
-                    datasets: [{
-                        data: points.map(p => p.val),
-                        borderColor: '#06B6D4',
-                        backgroundColor: gradient,
-                        borderWidth: 3,
-                        pointBackgroundColor: '#000000',
-                        pointBorderColor: '#06B6D4',
-                        pointBorderWidth: 2,
-                        pointRadius: 5,
-                        fill: true,
-                        tension: 0.35
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10, weight: 'bold' } } },
-                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b', font: { size: 10, weight: 'bold' } } }
-                    }
-                }
-            });
-        }
 
         function getExerciseRecordPB(ex) {
             let maxW = 0;
@@ -3213,7 +3416,6 @@
             return { weight: maxW, reps: maxReps, date: date };
         }
 
-        /* ----- Nastavení ----- */
         window.renderNastaveniView = function(container) {
             container.innerHTML = `
                 <div class="space-y-6 pb-6">
@@ -3270,7 +3472,7 @@
                     </div>
 
                     <div class="text-center text-[11px] text-slate-600 font-extrabold uppercase tracking-widest mt-10 pb-6">
-                        SvalStats Premium v7.1<br>Designed for iOS PWA
+                        SvalStats Premium v7.3<br>Designed for iOS PWA
                     </div>
                 </div>
             `;
@@ -3321,7 +3523,6 @@
             });
         };
 
-        /* ----- Onboarding / Wizard ----- */
         function openOnboardingConsent() {
             const backdrop = document.getElementById('rollout-backdrop');
             const panel = document.getElementById('rollout-panel');
@@ -3482,7 +3683,7 @@
             const html = `
                 <div class="text-center flex flex-col h-full relative w-full">
                     <div class="flex-shrink-0 mb-4">
-                        <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest">Plán ${window.wizardState.currentDay} z ${window.wizardState.totalDays}</span>
+                        <span class="text-[11px] text-iosTeal uppercase font-black tracking-widest">Krok 2 ze 3</span>
                         <h3 class="text-2xl font-extrabold text-white mt-1">Nastavení tréninku</h3>
                     </div>
 
@@ -3568,10 +3769,10 @@
             }
         };
 
-        // Swipe down to dismiss Rollout logic
         function initRolloutGestures() {
             const handle = document.getElementById('rollout-drag-handle');
             const panel = document.getElementById('rollout-panel');
+            if (!handle || !panel) return;
             let startY = 0, currentY = 0, isDragging = false;
 
             handle.addEventListener('touchstart', (e) => {
@@ -3592,15 +3793,50 @@
             handle.addEventListener('touchend', (e) => {
                 if (!isDragging) return;
                 isDragging = false;
-                panel.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+                panel.style.transition = '';
                 const diff = currentY - startY;
-                if (diff > 80 && rolloutDismissible) { 
+                if (diff > 150) {
                     closeRollout();
                 } else {
-                    panel.style.transform = ''; 
+                    panel.style.transform = '';
                 }
             });
         }
+
+        window.deleteBiometricHistorical = (metricId, date) => {
+            if (state.biometrics[date] && state.biometrics[date][metricId] !== undefined) {
+                delete state.biometrics[date][metricId];
+                if (Object.keys(state.biometrics[date]).length === 0) delete state.biometrics[date];
+                saveState();
+                openBiometricRollout(metricId); 
+                renderView();
+                showToast("Historický záznam smazán");
+            }
+        };
+
+        // Make functions globally available
+        window.closeRollout = closeRollout;
+        window.switchTab = switchTab;
+        window.switchTabVisuals = switchTabVisuals;
+        window.proceedSwitchTab = proceedSwitchTab;
+        window.renderView = renderView;
+        window.handlePhotoUpload = handlePhotoUpload;
+        window.openFullPhotoRollout = openFullPhotoRollout;
+        window.deletePhotoConfirm = deletePhotoConfirm;
+        window.openSetRolloutValue = openSetRolloutValue;
+        window.saveSetRolloutValue = saveSetRolloutValue;
+        window.addSetToActiveWorkout = addSetToActiveWorkout;
+        window.deleteSetFromActiveWorkout = deleteSetFromActiveWorkout;
+        window.cancelActiveWorkoutConfirm = cancelActiveWorkoutConfirm;
+        window.finishActiveWorkoutConfirm = finishActiveWorkoutConfirm;
+        window.openWorkoutDayEditor = openWorkoutDayEditor;
+        window.exitEditorWithoutSaving = exitEditorWithoutSaving;
+        window.saveWorkoutDayFromEditor = saveWorkoutDayFromEditor;
+        window.openDayLogsHistoryRollout = openDayLogsHistoryRollout;
+        window.selectWorkoutDay = selectWorkoutDay;
+        window.startWorkoutTimer = startWorkoutTimer;
+        window.startWorkoutFromHome = startWorkoutFromHome;
+        window.openExerciseDetailRollout = openExerciseDetailRollout;
 
         window.addEventListener('DOMContentLoaded', () => {
             loadState();
